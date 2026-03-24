@@ -58,3 +58,12 @@ body {
 .hljs-built_in { color: #e5c07b; }
 .hljs-attr { color: #d19a66; }
 .hljs-variable { color: #e06c75; }
+
+/* Slide-in animation for panels */
+@keyframes slide-in-right {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+.animate-slide-in-right {
+  animation: slide-in-right 0.25s ease-out;
+}

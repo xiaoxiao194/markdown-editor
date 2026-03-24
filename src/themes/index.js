@@ -327,6 +327,97 @@ export const builtInThemes = {
       .preview-body hr { border: none; border-top: 2px dashed #ffccd5; margin: 20px 0; }
     `,
   },
+  minimalist: {
+    name: '极简',
+    css: `
+      .preview-body { font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif; font-size: 16px; line-height: 1.9; color: #3a3a3a; background: #fff; padding: 32px; max-width: 680px; margin: 0 auto; }
+      .preview-body h1 { font-size: 1.8em; font-weight: 600; margin: 0 0 1em; color: #1a1a1a; letter-spacing: -0.01em; }
+      .preview-body h2 { font-size: 1.35em; font-weight: 600; margin: 2em 0 0.8em; color: #1a1a1a; }
+      .preview-body h3 { font-size: 1.1em; font-weight: 600; margin: 1.6em 0 0.6em; color: #1a1a1a; }
+      .preview-body p { margin: 0 0 1.2em; }
+      .preview-body a { color: #3a3a3a; text-decoration: underline; text-underline-offset: 3px; }
+      .preview-body strong { color: #1a1a1a; font-weight: 600; }
+      .preview-body code { font-family: "SFMono-Regular", Consolas, monospace; font-size: 85%; background: #f5f5f5; padding: 0.2em 0.4em; border-radius: 3px; color: #555; }
+      .preview-body pre { background: #f8f8f8; border: 1px solid #eee; border-radius: 4px; padding: 16px; overflow: auto; margin: 0 0 1.4em; }
+      .preview-body pre code { background: none; border: none; padding: 0; color: #3a3a3a; }
+      .preview-body blockquote { margin: 0 0 1.2em; padding: 0 0 0 16px; border-left: 2px solid #ddd; color: #888; }
+      .preview-body ul, .preview-body ol { padding-left: 1.5em; margin: 0 0 1.2em; }
+      .preview-body li { margin: 6px 0; }
+      .preview-body table { border-collapse: collapse; width: 100%; margin: 0 0 1.4em; }
+      .preview-body th, .preview-body td { border-bottom: 1px solid #eee; padding: 10px 12px; text-align: left; }
+      .preview-body th { font-weight: 600; color: #1a1a1a; }
+      .preview-body img { max-width: 100%; border-radius: 2px; }
+      .preview-body hr { border: none; border-top: 1px solid #eee; margin: 2.5em 0; }
+    `,
+  },
+  techblog: buildWechatTheme({
+    id: 'techblog',
+    name: '技术博客',
+    tokens: {
+      palette: {
+        primary: '#2563eb',
+        accent: '#3b82f6',
+        heading: '#111827',
+        body: '#374151',
+        strong: '#1e40af',
+        background: '#ffffff',
+        codeBg: '#1e293b',
+        codeText: '#e2e8f0',
+      },
+      typography: {
+        bodySize: 15.5,
+        heading1Size: 1.9,
+        heading2Size: 1.4,
+        heading3Size: 1.15,
+        lineHeight: 1.8,
+        fontFamily: '-apple-system, "PingFang SC", "Microsoft YaHei", sans-serif',
+      },
+      layout: {
+        contentWidth: 700,
+        radius: 12,
+        imageRadius: 10,
+        codeRadius: 10,
+      },
+      effects: {
+        imageShadow: '0 10px 30px rgba(37,99,235,0.12)',
+        codeShadow: '0 15px 35px rgba(15,23,42,0.4)',
+      },
+    },
+  }),
+  literary: buildWechatTheme({
+    id: 'literary',
+    name: '文艺清新',
+    tokens: {
+      palette: {
+        primary: '#d4a574',
+        accent: '#c17f59',
+        heading: '#5c4033',
+        body: '#4a4a4a',
+        strong: '#8b5e3c',
+        background: '#faf8f5',
+        codeBg: '#3c2f24',
+        codeText: '#e8d5c4',
+      },
+      typography: {
+        bodySize: 16,
+        heading1Size: 1.8,
+        heading2Size: 1.35,
+        heading3Size: 1.12,
+        lineHeight: 2,
+        fontFamily: '"Noto Serif SC", Georgia, "Times New Roman", serif',
+      },
+      layout: {
+        contentWidth: 640,
+        radius: 24,
+        imageRadius: 20,
+        codeRadius: 16,
+      },
+      effects: {
+        imageShadow: '0 20px 40px rgba(92,64,51,0.15)',
+        codeShadow: '0 20px 40px rgba(60,47,36,0.4)',
+      },
+    },
+  }),
   print: {
     name: '印刷/书籍',
     css: `

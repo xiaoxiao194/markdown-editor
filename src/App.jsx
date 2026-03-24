@@ -3,44 +3,258 @@ import Editor from './components/Editor.jsx'
 import Preview from './components/Preview.jsx'
 import Toolbar from './components/Toolbar.jsx'
 import ThemeLab from './components/ThemeLab.jsx'
+import Toast from './components/Toast.jsx'
 import { parseMarkdown } from './utils/markdown.js'
 import { copyRichText } from './utils/clipboard.js'
 import { builtInThemes, createCustomWechatTheme, DEFAULT_WECHAT_TOKENS } from './themes/index.js'
 
-const DEFAULT_MD = `# 欢迎使用 Markdown 预览器
+const DEFAULT_MD = `# MarkCopy 使用指南 — 写出排版精美的公众号文章
 
-这是一个支持**一键复制**富文本的 Markdown 预览工具，粘贴到微信公众号、知乎等平台后可保留完整格式。
+这是一篇**完整的 Markdown 教程**，同时也是 MarkCopy 的使用说明。你可以直接编辑左侧内容，右侧实时预览效果，写完后点击「一键复制」粘贴到公众号、知乎、掘金等平台，**格式完美保留**。
 
-## 功能特性
+> 💡 **小技巧**：你正在看的这篇文章本身就是用 Markdown 写的，所有样式效果都可以直接参考。
 
-- 实时预览 Markdown 渲染效果
-- 支持多种主题风格切换
-- 一键复制为富文本，粘贴即用
-- 支持拖拽或上传 \`.md\` 文件
+---
 
-## 代码示例
+## 基础语法
 
-\`\`\`javascript
-function hello(name) {
-  console.log(\`Hello, \${name}!\`)
-}
-hello('世界')
+### 标题
+
+用 \`#\` 号表示标题，几个 \`#\` 就是几级标题：
+
+\`\`\`markdown
+# 一级标题
+## 二级标题
+### 三级标题
+#### 四级标题
 \`\`\`
 
-## 引用块
+建议公众号文章用 **二级标题** 做主分隔，**三级标题** 做小节，层次清晰。
 
-> 简单而强大的 Markdown 工具，让内容发布更轻松。
+### 文字样式
+
+| 语法 | 效果 | 适用场景 |
+|------|------|----------|
+| \`**加粗**\` | **加粗** | 强调关键词 |
+| \`*斜体*\` | *斜体* | 英文术语、引用 |
+| \`~~删除线~~\` | ~~删除线~~ | 表示修改、对比 |
+| \`\\\`行内代码\\\`\` | \`行内代码\` | 技术名词、命令 |
+| \`**_加粗斜体_**\` | **_加粗斜体_** | 极度强调 |
+
+示例：使用 ChatGPT 时，模型 \`GPT-4o\` 的推理能力比 \`GPT-3.5\` **显著提升**，尤其在~~简单问答~~复杂推理场景中表现突出。
+
+### 链接与图片
+
+链接语法：\`[显示文字](URL)\`
+
+常用链接示例：
+
+- [MarkCopy — Markdown 一键排版工具](https://md.payforchat.com)
+- [ChatGPT 官网](https://chatgpt.com)
+- [PayForChat — ChatGPT Plus 便捷充值](https://payforchat.com)
+
+图片语法：\`![描述](图片URL)\`
+
+\`\`\`markdown
+![示例图片](https://picsum.photos/600/300)
+\`\`\`
+
+> 公众号文章建议：先用 MarkCopy 排版，再在公众号编辑器里替换图片，效果最佳。
+
+---
+
+## 列表
+
+### 无序列表
+
+用 \`-\` 或 \`*\` 开头：
+
+- 第一步：打开 [md.payforchat.com](https://md.payforchat.com)
+- 第二步：在左侧编辑器写 Markdown
+- 第三步：右上角选择目标平台风格
+- 第四步：点击「一键复制」
+- 第五步：粘贴到目标平台，完成！
+
+### 有序列表
+
+用数字开头：
+
+1. 注册 ChatGPT 账号
+2. 获取 Access Token
+3. 访问 [payforchat.com](https://payforchat.com) 选择套餐
+4. 完成支付，自动充值
+
+### 任务列表
+
+\`\`\`markdown
+- [x] 已完成的任务
+- [ ] 待完成的任务
+\`\`\`
+
+效果：
+
+- [x] 写好文章初稿
+- [x] 用 MarkCopy 排版
+- [ ] 复制到公众号发布
+- [ ] 分享到朋友圈
+
+---
+
+## 引用
+
+用 \`>\` 开头创建引用块，适合放金句、提示、注意事项：
+
+> 工欲善其事，必先利其器。
+> 好的排版工具能让你的文章阅读体验提升 80%。
+
+多层嵌套引用：
+
+> **读者问**：没有国外信用卡，怎么订阅 ChatGPT Plus？
+>
+> > **回答**：可以使用代充服务。[PayForChat](https://payforchat.com) 支持支付宝/微信付款，3 步完成 Plus 升级，无需信用卡。
+
+---
+
+## 代码
+
+### 行内代码
+
+在终端输入 \`npm install\` 安装依赖，或用 \`Ctrl + C\` 复制内容。
+
+### 代码块
+
+支持语法高亮，指定语言即可：
+
+\`\`\`python
+# Python 示例：调用 ChatGPT API
+import openai
+
+client = openai.OpenAI(api_key="your-api-key")
+
+response = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[
+        {"role": "user", "content": "你好，请介绍一下你自己"}
+    ]
+)
+
+print(response.choices[0].message.content)
+\`\`\`
+
+\`\`\`javascript
+// JavaScript 示例：Markdown 转 HTML
+const marked = require('marked');
+
+const markdown = '# Hello World';
+const html = marked.parse(markdown);
+console.log(html);
+// 输出: <h1>Hello World</h1>
+\`\`\`
+
+\`\`\`bash
+# 常用命令
+git clone https://github.com/your-repo.git
+cd your-repo
+npm install && npm run dev
+\`\`\`
+
+---
 
 ## 表格
 
-| 平台 | 是否支持富文本粘贴 |
-|------|--------------|
-| 微信公众号 | ✅ |
-| 知乎 | ✅ |
-| 掘金 | ✅ |
+用 \`|\` 和 \`-\` 创建表格，支持对齐：
+
+| 功能 | 免费版 (GPT-3.5) | Plus 版 (GPT-4o) |
+|:-----|:-----------------:|:-----------------:|
+| 基础对话 | ✅ | ✅ |
+| GPT-4o 模型 | 有限次数 | 无限制 |
+| DALL-E 绘图 | ❌ | ✅ |
+| 高级数据分析 | ❌ | ✅ |
+| 自定义 GPTs | 有限制 | 完整功能 |
+| **价格** | 免费 | $20/月 |
+
+> 💰 **省钱攻略**：通过 [PayForChat](https://payforchat.com) 充值 ChatGPT Plus，支持支付宝/微信，比官方直订更方便，[点击了解详情 →](https://payforchat.com/plans)
+
+---
+
+## 数学公式
+
+行内公式用 \`$\`：质能方程 $E = mc^2$
+
+独立公式用 \`$$\`：
+
+$$
+\\sum_{i=1}^{n} x_i = x_1 + x_2 + \\cdots + x_n
+$$
+
+---
+
+## 分隔线
+
+三个及以上的 \`-\`、\`*\` 或 \`_\` 创建分隔线：
+
+---
+
+## 高级技巧
+
+### Emoji
+
+直接输入 emoji 即可：🎉 🚀 💡 ✅ ❌ ⚠️ 📌 🔥
+
+### 脚注
+
+Markdown 支持脚注[^1]，适合添加参考来源。
+
+[^1]: MarkCopy 由 [PayForChat](https://payforchat.com) 团队开发，致力于提升创作者的写作效率。
+
+### HTML 混排
+
+Markdown 中可以直接使用 HTML：
+
+<div align="center">
+
+**MarkCopy** — 让 Markdown 写作更简单
+
+[开始使用](https://md.payforchat.com) · [ChatGPT Plus 充值](https://payforchat.com) · [使用教程](https://payforchat.com/articles)
+
+</div>
+
+---
+
+## 写作工作流推荐
+
+一套高效的公众号写作流程：
+
+\`\`\`
+构思大纲 → Markdown 写初稿 → MarkCopy 排版 → 一键复制到公众号 → 发布
+\`\`\`
+
+**为什么选择 Markdown + MarkCopy？**
+
+1. **专注内容**：Markdown 语法简洁，写作时不被排版分心
+2. **一次编写，多端发布**：同一篇文章可以发公众号、知乎、掘金，格式自动适配
+3. **版本管理**：纯文本格式，方便用 Git 管理文章版本
+4. **排版一致**：告别公众号编辑器的格式错乱问题
+
+---
+
+## 快捷操作
+
+| 操作 | 说明 |
+|------|------|
+| 🎨 切换样式 | 左上角下拉框选择：掘金、公众号、知乎等风格 |
+| 📋 一键复制 | 右上角蓝色按钮，复制带格式的富文本 |
+| 📤 上传文件 | 拖拽 \`.md\` 文件到编辑器，或点击「上传 .md」 |
+| 🖼 粘贴图片 | 直接 Ctrl+V 粘贴截图 |
+
+---
+
+*本文由 [MarkCopy](https://md.payforchat.com) 排版 | Powered by [PayForChat](https://payforchat.com)*
 `
 
 const CUSTOM_THEME_STORAGE_KEY = 'markcopy.customThemes'
+const DRAFT_STORAGE_KEY = 'markcopy.draft'
+const THEME_STORAGE_KEY = 'markcopy.theme'
 const cloneTokens = (tokens) => JSON.parse(JSON.stringify(tokens))
 const createEmptyLabState = () => ({
   open: false,
@@ -65,12 +279,24 @@ const loadStoredThemes = () => {
 }
 
 export default function App() {
-  const [markdown, setMarkdown] = useState(DEFAULT_MD)
-  const [theme, setTheme] = useState('wechat')
+  const [markdown, setMarkdown] = useState(() => {
+    try {
+      const saved = localStorage.getItem(DRAFT_STORAGE_KEY)
+      return saved || DEFAULT_MD
+    } catch { return DEFAULT_MD }
+  })
+  const [theme, setTheme] = useState(() => {
+    try {
+      return localStorage.getItem(THEME_STORAGE_KEY) || 'wechat'
+    } catch { return 'wechat' }
+  })
+  const [saveStatus, setSaveStatus] = useState('idle')
+  const [activePlatform, setActivePlatform] = useState('微信公众号')
   const [publishDate] = useState(() => new Date())
   const previewRef = useRef(null)
   const [customThemes, setCustomThemes] = useState(() => loadStoredThemes())
   const [themeLab, setThemeLab] = useState(createEmptyLabState)
+  const [toastVisible, setToastVisible] = useState(false)
 
   const imageStoreRef = useRef(new Map()) // img-1 → base64
   const imageCountRef = useRef(0)
@@ -123,6 +349,23 @@ export default function App() {
     window.localStorage.setItem(CUSTOM_THEME_STORAGE_KEY, JSON.stringify(customThemes))
   }, [customThemes])
 
+  // Auto-save draft
+  useEffect(() => {
+    setSaveStatus('saving')
+    const timer = setTimeout(() => {
+      try {
+        localStorage.setItem(DRAFT_STORAGE_KEY, markdown)
+        setSaveStatus('saved')
+      } catch { setSaveStatus('idle') }
+    }, 800)
+    return () => clearTimeout(timer)
+  }, [markdown])
+
+  // Save selected theme
+  useEffect(() => {
+    try { localStorage.setItem(THEME_STORAGE_KEY, theme) } catch {}
+  }, [theme])
+
   const activeThemeConfig = themeOptions[theme] ?? builtInThemes.wechat
   const labPreviewTheme = useMemo(() => {
     if (!themeLab.open) return null
@@ -137,7 +380,9 @@ export default function App() {
   const handleCopy = useCallback(async () => {
     const container = previewRef.current?.querySelector('.preview-body')
     if (!container) return false
-    return await copyRichText(container)
+    const ok = await copyRichText(container)
+    if (ok) setToastVisible(true)
+    return ok
   }, [])
 
   const handleOpenThemeLab = () => {
@@ -220,12 +465,11 @@ export default function App() {
               </div>
             </div>
 
-            {/* 平台徽章 */}
-            <div className="hidden sm:flex gap-2 text-xs">
-              <span className="px-3 py-1 bg-[#3b82f6]/10 rounded-full border border-[#3b82f6]/30 text-[#3b82f6] font-semibold">微信公众号</span>
-              <span className="px-3 py-1 bg-[#f6f8fa] rounded-full border border-[#d0d7de] text-[#656d76]">知乎</span>
-              <span className="px-3 py-1 bg-[#f6f8fa] rounded-full border border-[#d0d7de] text-[#656d76]">掘金</span>
-            </div>
+            {/* GitHub 链接 */}
+            <a href="https://github.com/xiaoxiao194/markdown-editor" target="_blank" rel="noopener noreferrer" className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-[#656d76] hover:text-[#1f2328] hover:bg-[#f6f8fa] transition-colors duration-150">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+              GitHub
+            </a>
           </div>
         </header>
 
@@ -237,11 +481,28 @@ export default function App() {
           onOpenThemeLab={handleOpenThemeLab}
         />
 
-        <div className="relative flex flex-col md:flex-row flex-1 overflow-hidden py-8 gap-8">
-          <div className="flex flex-col flex-1 md:basis-1/2 min-h-[300px] bg-white border border-[#d0d7de] rounded-2xl shadow-[0_18px_45px_rgba(31,35,40,0.06)] overflow-hidden">
-            <Editor value={markdown} onChange={setMarkdown} onInsertImage={handleInsertImage} wordCount={meta.wordCount} />
+        {/* 平台切换 Tab */}
+        <div className="flex gap-2 px-5 pt-4">
+          {['微信公众号', '知乎', '掘金'].map((name) => (
+            <button
+              key={name}
+              className={`px-4 py-1.5 rounded-lg text-sm font-medium border transition-colors duration-150 ${
+                activePlatform === name
+                  ? 'bg-[#3b82f6]/10 text-[#3b82f6] border-[#3b82f6]/30'
+                  : 'bg-[#f6f8fa] text-[#656d76] border-[#d0d7de] hover:border-[#3b82f6]/30 hover:text-[#3b82f6]'
+              }`}
+              onClick={() => setActivePlatform(name)}
+            >
+              {name}
+            </button>
+          ))}
+        </div>
+
+        <div className="relative flex flex-col md:flex-row flex-1 overflow-hidden py-6 gap-8">
+          <div className="flex flex-col flex-1 md:basis-1/2 min-h-[300px] bg-[#f6f8fa] border border-[#d0d7de] rounded-2xl shadow-[0_18px_45px_rgba(31,35,40,0.06)] overflow-hidden">
+            <Editor value={markdown} onChange={setMarkdown} onInsertImage={handleInsertImage} wordCount={meta.wordCount} saveStatus={saveStatus} />
           </div>
-          <div className="flex flex-col flex-1 md:basis-1/2 min-h-[300px] bg-white border border-[#d0d7de] rounded-2xl shadow-[0_20px_55px_rgba(31,35,40,0.06)] overflow-hidden" ref={previewRef}>
+          <div className="flex flex-col flex-1 md:basis-1/2 min-h-[300px] bg-white border border-[#d0d7de] rounded-2xl shadow-lg ring-1 ring-[#d0d7de]/50 overflow-hidden" ref={previewRef}>
             <Preview html={html} themeConfig={previewThemeConfig} meta={meta} labPreviewName={themeLab.open ? themeLab.name : ''} />
           </div>
         </div>
@@ -252,6 +513,12 @@ export default function App() {
           <span>Markdown 一键排版工具</span>
         </footer>
       </div>
+
+      <Toast
+        message="已复制富文本，去公众号粘贴即可"
+        visible={toastVisible}
+        onDismiss={() => setToastVisible(false)}
+      />
 
       <ThemeLab
         open={themeLab.open}

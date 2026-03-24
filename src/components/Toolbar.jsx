@@ -1,16 +1,4 @@
-import { useState } from 'react'
-
 export default function Toolbar({ theme, themeEntries = [], onThemeChange, onCopy, onOpenThemeLab }) {
-  const [copied, setCopied] = useState(false)
-
-  const handleCopy = async () => {
-    const ok = await onCopy()
-    if (ok) {
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    }
-  }
-
   return (
     <div className="flex items-center justify-between px-5 py-2.5 bg-[#f6f8fa] border-b border-[#d0d7de] shadow-sm flex-shrink-0">
       {/* 主题选择区 */}
@@ -31,7 +19,6 @@ export default function Toolbar({ theme, themeEntries = [], onThemeChange, onCop
               </option>
             ))}
           </select>
-          {/* 下拉箭头图标 */}
           <div className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[#656d76]">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="6 9 12 15 18 9"/>
@@ -53,31 +40,14 @@ export default function Toolbar({ theme, themeEntries = [], onThemeChange, onCop
 
       {/* 复制按钮 */}
       <button
-        onClick={handleCopy}
-        className={`
-          flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-200 select-none
-          ${copied
-            ? 'bg-[#3b82f6] text-white shadow-lg shadow-[#3b82f6]/20'
-            : 'bg-[#3b82f6] text-white hover:bg-[#2563eb] hover:shadow-lg hover:shadow-[#3b82f6]/30 hover:-translate-y-0.5 active:scale-95 active:translate-y-0'
-          }
-        `}
+        onClick={onCopy}
+        className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-200 select-none bg-[#3b82f6] text-white hover:bg-[#2563eb] hover:shadow-lg hover:shadow-[#3b82f6]/30 hover:-translate-y-0.5 active:scale-95 active:translate-y-0"
       >
-        {copied ? (
-          <>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="20 6 9 17 4 12"/>
-            </svg>
-            已复制！
-          </>
-        ) : (
-          <>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-            </svg>
-            一键复制
-          </>
-        )}
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+        </svg>
+        一键复制
       </button>
     </div>
   )

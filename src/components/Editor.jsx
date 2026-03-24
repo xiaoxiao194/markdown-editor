@@ -1,6 +1,7 @@
 import { useRef } from 'react'
+import EditorToolbar from './EditorToolbar.jsx'
 
-export default function Editor({ value, onChange, onInsertImage, wordCount }) {
+export default function Editor({ value, onChange, onInsertImage, wordCount, saveStatus }) {
   const textareaRef = useRef(null)
 
   const handleDrop = (e) => {
@@ -47,6 +48,15 @@ export default function Editor({ value, onChange, onInsertImage, wordCount }) {
           Markdown 编辑器
         </div>
         <div className="flex items-center gap-3 text-xs">
+          {saveStatus === 'saved' && (
+            <span className="flex items-center gap-1 text-[#22c55e]">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e]" />
+              已保存
+            </span>
+          )}
+          {saveStatus === 'saving' && (
+            <span className="text-[#d0d7de]">保存中...</span>
+          )}
           <span className="text-[#656d76]">{wordCount} 字</span>
           <span className="text-[#d0d7de]">·</span>
           <span className="text-[#656d76]">拖拽/粘贴图片</span>
@@ -57,9 +67,11 @@ export default function Editor({ value, onChange, onInsertImage, wordCount }) {
         </div>
       </div>
 
+      <EditorToolbar textareaRef={textareaRef} onChange={onChange} />
+
       <textarea
         ref={textareaRef}
-        className="editor-textarea flex-1 w-full p-4 text-sm resize-none outline-none bg-white text-[#1f2328] leading-relaxed"
+        className="editor-textarea flex-1 w-full p-4 text-sm resize-none outline-none bg-[#f6f8fa] text-[#1f2328] leading-relaxed"
         placeholder="在这里输入 Markdown 内容，或拖拽 .md 文件到此处..."
         value={value}
         onChange={(e) => onChange(e.target.value)}
