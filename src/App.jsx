@@ -1,7 +1,6 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react'
 import Editor from './components/Editor.jsx'
 import Preview from './components/Preview.jsx'
-import Toolbar from './components/Toolbar.jsx'
 import ThemeLab from './components/ThemeLab.jsx'
 import Toast from './components/Toast.jsx'
 import { parseMarkdown } from './utils/markdown.js'
@@ -253,7 +252,7 @@ Markdown 中可以直接使用 HTML：
 `
 
 const CUSTOM_THEME_STORAGE_KEY = 'markcopy.customThemes'
-const DRAFT_STORAGE_KEY = 'markcopy.draft'
+const DRAFT_STORAGE_KEY = 'markcopy_draft'
 const THEME_STORAGE_KEY = 'markcopy.theme'
 const cloneTokens = (tokens) => JSON.parse(JSON.stringify(tokens))
 const createEmptyLabState = () => ({
@@ -356,8 +355,10 @@ export default function App() {
       try {
         localStorage.setItem(DRAFT_STORAGE_KEY, markdown)
         setSaveStatus('saved')
+        // 2 秒后淡出
+        setTimeout(() => setSaveStatus('idle'), 2000)
       } catch { setSaveStatus('idle') }
-    }, 800)
+    }, 3000)
     return () => clearTimeout(timer)
   }, [markdown])
 
@@ -431,87 +432,87 @@ export default function App() {
     setThemeLab(createEmptyLabState())
   }
 
+  const handleExportMd = useCallback(() => {
+    const blob = new Blob([markdown], { type: 'text/markdown' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `markcopy_${new Date().toISOString().slice(0, 10)}.md`
+    a.click()
+    URL.revokeObjectURL(url)
+  }, [markdown])
+
+  const platformPreviewName = activePlatform === '知乎' ? '知乎预览' : activePlatform === '掘金' ? '掘金预览' : '公众号预览'
+
   return (
-    <div className="min-h-screen bg-[#f0f2f5] px-4 md:px-10 lg:px-16 xl:px-24 py-8">
-      <div className="relative flex flex-col h-full w-full max-w-[1560px] mx-auto rounded-[36px] bg-white border border-[#d0d7de] shadow-[0_45px_120px_rgba(31,35,40,0.08)] overflow-hidden px-6 sm:px-10">
-        {/* 顶部微光氛围 */}
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute inset-x-12 top-0 h-32 bg-gradient-to-br from-[#3b82f6]/8 to-transparent blur-3xl opacity-50" />
-          <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-white/60 to-transparent" />
+    <div className="min-h-screen bg-[#f0f2f5] flex flex-col">
+      {/* 第一层：顶部导航栏 */}
+      <nav className="h-14 bg-white border-b border-[#e5e7eb] flex items-center px-4 md:px-8 flex-shrink-0">
+        {/* 左侧 Logo */}
+        <div className="flex items-center gap-2.5 mr-8">
+          <div className="w-8 h-8 rounded-lg bg-[#3b82f6]/10 border border-[#3b82f6]/30 flex items-center justify-center text-[#3b82f6]">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="9" y1="13" x2="9" y2="17"/>
+              <line x1="9" y1="13" x2="12" y2="10"/>
+              <line x1="9" y1="17" x2="12" y2="20"/>
+              <line x1="15" y1="13" x2="15" y2="17"/>
+            </svg>
+          </div>
+          <span className="text-base font-bold text-[#1f2328] tracking-tight">MarkCopy</span>
         </div>
 
-        <header className="relative px-8 py-5 bg-transparent border-b border-[#d0d7de] flex-shrink-0">
-          <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#3b82f6] to-[#7c3aed]" />
-
-          <div className="relative flex items-center justify-between">
-            {/* Logo 区 */}
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-[#3b82f6]/10 border border-[#3b82f6]/30 flex items-center justify-center text-[#3b82f6]">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                  <polyline points="14 2 14 8 20 8"/>
-                  <line x1="9" y1="13" x2="9" y2="17"/>
-                  <line x1="9" y1="13" x2="12" y2="10"/>
-                  <line x1="9" y1="17" x2="12" y2="20"/>
-                  <line x1="15" y1="13" x2="15" y2="17"/>
-                </svg>
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-[20px] font-bold tracking-tight leading-tight text-[#1f2328]">MarkCopy</h1>
-                  <span className="text-xs text-[#3b82f6] font-semibold px-2 py-0.5 rounded-full bg-[#3b82f6]/10 border border-[#3b82f6]/25">公众号特调</span>
-                </div>
-                <p className="text-xs text-[#656d76] leading-tight">Markdown 一键润色，粘贴即刻成文</p>
-              </div>
-            </div>
-
-            {/* GitHub 链接 */}
-            <a href="https://github.com/xiaoxiao194/markdown-editor" target="_blank" rel="noopener noreferrer" className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-[#656d76] hover:text-[#1f2328] hover:bg-[#f6f8fa] transition-colors duration-150">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
-              GitHub
-            </a>
-          </div>
-        </header>
-
-        <Toolbar
-          theme={theme}
-          themeEntries={themeEntries}
-          onThemeChange={setTheme}
-          onCopy={handleCopy}
-          onOpenThemeLab={handleOpenThemeLab}
-        />
-
-        {/* 平台切换 Tab */}
-        <div className="flex gap-2 px-5 pt-4">
+        {/* 中间 平台 Tab */}
+        <div className="flex items-center h-full gap-0">
           {['微信公众号', '知乎', '掘金'].map((name) => (
             <button
               key={name}
-              className={`px-4 py-1.5 rounded-lg text-sm font-medium border transition-colors duration-150 ${
+              className={`relative h-full px-4 text-sm font-medium transition-colors duration-150 ${
                 activePlatform === name
-                  ? 'bg-[#3b82f6]/10 text-[#3b82f6] border-[#3b82f6]/30'
-                  : 'bg-[#f6f8fa] text-[#656d76] border-[#d0d7de] hover:border-[#3b82f6]/30 hover:text-[#3b82f6]'
+                  ? 'text-[#3b82f6]'
+                  : 'text-[#656d76] hover:text-[#1f2328]'
               }`}
               onClick={() => setActivePlatform(name)}
             >
               {name}
+              {activePlatform === name && (
+                <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-[#3b82f6] rounded-full" />
+              )}
             </button>
           ))}
         </div>
 
-        <div className="relative flex flex-col md:flex-row flex-1 overflow-hidden py-6 gap-8">
-          <div className="flex flex-col flex-1 md:basis-1/2 min-h-[300px] bg-[#f6f8fa] border border-[#d0d7de] rounded-2xl shadow-[0_18px_45px_rgba(31,35,40,0.06)] overflow-hidden">
-            <Editor value={markdown} onChange={setMarkdown} onInsertImage={handleInsertImage} wordCount={meta.wordCount} saveStatus={saveStatus} />
-          </div>
-          <div className="flex flex-col flex-1 md:basis-1/2 min-h-[300px] bg-white border border-[#d0d7de] rounded-2xl shadow-lg ring-1 ring-[#d0d7de]/50 overflow-hidden" ref={previewRef}>
-            <Preview html={html} themeConfig={previewThemeConfig} meta={meta} labPreviewName={themeLab.open ? themeLab.name : ''} />
-          </div>
+        {/* 右侧 GitHub */}
+        <div className="ml-auto flex items-center">
+          <a href="https://github.com/xiaoxiao194/markdown-editor" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-[#656d76] hover:text-[#1f2328] hover:bg-[#f6f8fa] transition-colors duration-150">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+            <span className="hidden sm:inline">GitHub</span>
+          </a>
         </div>
+      </nav>
 
-        {/* Footer */}
-        <footer className="relative px-8 py-3 border-t border-[#d0d7de] flex items-center justify-between text-xs text-[#656d76] flex-shrink-0">
-          <span>MarkCopy v1.0</span>
-          <span>Markdown 一键排版工具</span>
-        </footer>
+      {/* 第二层：编辑器 + 预览 */}
+      <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
+        {/* 编辑器面板 */}
+        <div className="flex flex-col flex-1 md:basis-1/2 min-h-[300px] border-r border-[#e5e7eb]">
+          <Editor value={markdown} onChange={setMarkdown} onInsertImage={handleInsertImage} onExportMd={handleExportMd} wordCount={meta.wordCount} saveStatus={saveStatus} />
+        </div>
+        {/* 预览面板 */}
+        <div className="flex flex-col flex-1 md:basis-1/2 min-h-[300px] bg-white" ref={previewRef}>
+          <Preview
+            html={html}
+            themeConfig={previewThemeConfig}
+            meta={meta}
+            labPreviewName={themeLab.open ? themeLab.name : ''}
+            platformName={platformPreviewName}
+            theme={theme}
+            themeEntries={themeEntries}
+            onThemeChange={setTheme}
+            onCopy={handleCopy}
+            onOpenThemeLab={handleOpenThemeLab}
+          />
+        </div>
       </div>
 
       <Toast

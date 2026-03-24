@@ -1,10 +1,9 @@
 import { useEffect, useRef } from 'react'
 
-export default function Preview({ html, themeConfig, meta = {}, labPreviewName = '' }) {
+export default function Preview({ html, themeConfig, meta = {}, labPreviewName = '', platformName = '公众号预览', theme, themeEntries = [], onThemeChange, onCopy, onOpenThemeLab }) {
   const containerRef = useRef(null)
   const styleRef = useRef(null)
 
-  // 注入主题样式
   useEffect(() => {
     if (!styleRef.current) {
       styleRef.current = document.createElement('style')
@@ -13,20 +12,15 @@ export default function Preview({ html, themeConfig, meta = {}, labPreviewName =
     styleRef.current.textContent = themeConfig?.css || ''
   }, [themeConfig])
 
-  const themeName = themeConfig?.name || 'GitHub'
   const isWechatTheme = themeConfig?.meta?.base === 'wechat'
   const formattedDate = meta?.publishDate
     ? new Date(meta.publishDate).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })
     : ''
 
-  const badgeClass = isWechatTheme
-    ? 'px-3 py-1 text-xs rounded-full bg-[#3b82f6]/10 text-[#3b82f6] border border-[#3b82f6]/25 font-semibold'
-    : 'px-2.5 py-0.5 text-xs rounded-full bg-[#f6f8fa] text-[#656d76] border border-[#d0d7de] font-medium'
-
   return (
     <div className="flex flex-col h-full">
       {/* 面板头部 */}
-      <div className="flex items-center justify-between px-4 py-2.5 bg-[#f6f8fa] border-b border-[#d0d7de] flex-shrink-0">
+      <div className="flex items-center justify-between px-4 py-2 bg-[#f6f8fa] border-b border-[#e5e7eb] flex-shrink-0">
         <div className="flex items-center gap-2 text-[#656d76] text-sm font-medium">
           <span className="text-[#3b82f6]">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -34,16 +28,55 @@ export default function Preview({ html, themeConfig, meta = {}, labPreviewName =
               <circle cx="12" cy="12" r="3"/>
             </svg>
           </span>
-          {isWechatTheme ? '公众号预览' : '预览'}
+          {platformName}
           {labPreviewName && (
             <span className="text-xs text-[#3b82f6] font-semibold px-2 py-0.5 rounded-full bg-[#3b82f6]/10 border border-[#3b82f6]/25">
               预览：{labPreviewName}
             </span>
           )}
         </div>
-        <span className={badgeClass}>
-          {isWechatTheme ? `${themeName} · 粘贴即用` : themeName}
-        </span>
+        <div className="flex items-center gap-2">
+          {/* 样式选择器 */}
+          <div className="relative">
+            <select
+              value={theme}
+              onChange={(e) => {
+                if (e.target.value === '__theme_lab__') {
+                  onOpenThemeLab?.()
+                  // Reset select to current theme
+                  e.target.value = theme
+                } else {
+                  onThemeChange?.(e.target.value)
+                }
+              }}
+              className="appearance-none pl-2.5 pr-7 py-1 rounded-md border border-[#d0d7de] bg-white text-xs text-[#1f2328] outline-none cursor-pointer hover:border-[#3b82f6] focus:border-[#3b82f6] focus:ring-2 focus:ring-[#3b82f6]/15 transition-all duration-150 font-medium"
+            >
+              {themeEntries.map(([key, t]) => (
+                <option key={key} value={key}>
+                  {t.name}{t.isCustom ? ' · 自定义' : ''}
+                </option>
+              ))}
+              <option disabled>──────────</option>
+              <option value="__theme_lab__">⚙ 主题实验室...</option>
+            </select>
+            <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[#656d76]">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </div>
+          </div>
+          {/* 一键复制按钮 */}
+          <button
+            onClick={onCopy}
+            className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 select-none bg-gradient-to-r from-[#3b82f6] to-[#2563eb] text-white hover:shadow-lg hover:shadow-[#3b82f6]/30 hover:-translate-y-0.5 active:scale-95 active:translate-y-0"
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+            一键复制
+          </button>
+        </div>
       </div>
 
       <div className="flex-1 overflow-hidden">
@@ -82,5 +115,3 @@ export default function Preview({ html, themeConfig, meta = {}, labPreviewName =
     </div>
   )
 }
-
-export { }

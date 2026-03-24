@@ -1,7 +1,7 @@
 import { useRef } from 'react'
 import EditorToolbar from './EditorToolbar.jsx'
 
-export default function Editor({ value, onChange, onInsertImage, wordCount, saveStatus }) {
+export default function Editor({ value, onChange, onInsertImage, onExportMd, wordCount, saveStatus }) {
   const textareaRef = useRef(null)
 
   const handleDrop = (e) => {
@@ -37,7 +37,7 @@ export default function Editor({ value, onChange, onInsertImage, wordCount, save
   return (
     <div className="flex flex-col h-full" onDrop={handleDrop} onDragOver={(e) => e.preventDefault()}>
       {/* 面板头部 */}
-      <div className="flex items-center justify-between px-4 py-2.5 bg-[#f6f8fa] border-b border-[#d0d7de] flex-shrink-0">
+      <div className="flex items-center justify-between px-4 py-2 bg-[#f6f8fa] border-b border-[#e5e7eb] flex-shrink-0">
         <div className="flex items-center gap-2 text-[#656d76] text-sm font-medium">
           <span className="text-[#3b82f6]">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -46,24 +46,31 @@ export default function Editor({ value, onChange, onInsertImage, wordCount, save
             </svg>
           </span>
           Markdown 编辑器
+          {/* 保存状态 */}
+          <span className={`text-xs text-[#9ca3af] transition-opacity duration-500 ${saveStatus === 'saved' ? 'opacity-100' : 'opacity-0'}`}>
+            ✓ 已自动保存
+          </span>
         </div>
-        <div className="flex items-center gap-3 text-xs">
-          {saveStatus === 'saved' && (
-            <span className="flex items-center gap-1 text-[#22c55e]">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e]" />
-              已保存
-            </span>
-          )}
-          {saveStatus === 'saving' && (
-            <span className="text-[#d0d7de]">保存中...</span>
-          )}
+        <div className="flex items-center gap-2.5 text-xs">
           <span className="text-[#656d76]">{wordCount} 字</span>
-          <span className="text-[#d0d7de]">·</span>
-          <span className="text-[#656d76]">拖拽/粘贴图片</span>
-          <label className="cursor-pointer px-2.5 py-1 rounded-md bg-[#3b82f6]/10 text-[#3b82f6] hover:bg-[#3b82f6]/15 transition-colors duration-150 font-medium">
+          <label className="cursor-pointer px-2 py-1 rounded-md bg-[#3b82f6]/10 text-[#3b82f6] hover:bg-[#3b82f6]/15 transition-colors duration-150 font-medium flex items-center gap-1">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
             上传 .md
             <input type="file" accept=".md" className="hidden" onChange={handleFileInput} />
           </label>
+          <button
+            onClick={onExportMd}
+            className="px-2 py-1 rounded-md bg-[#3b82f6]/10 text-[#3b82f6] hover:bg-[#3b82f6]/15 transition-colors duration-150 font-medium flex items-center gap-1"
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            导出 .md
+          </button>
+          <span className="text-[#d0d7de]">·</span>
+          <span className="text-[#9ca3af]">拖拽/粘贴图片</span>
         </div>
       </div>
 
