@@ -8,13 +8,23 @@ export async function copyRichText(container) {
 }
 
 /**
- * 知乎专用复制 — 更激进地内联样式，清理不兼容元素
+ * 知乎专用复制 — 直接复制 Markdown 原文（知乎编辑器支持 Markdown 模式）
  */
-export async function copyForZhihu(container) {
-  const clone = container.cloneNode(true)
-  inlineComputedStyles(container, clone, true)
-  cleanForZhihu(clone)
-  return writeToClipboard(clone.outerHTML, container)
+export async function copyForZhihu(container, markdownText) {
+  try {
+    await navigator.clipboard.writeText(markdownText)
+    return true
+  } catch {
+    // 降级
+    const textarea = document.createElement('textarea')
+    textarea.value = markdownText
+    textarea.style.cssText = 'position:fixed;left:-9999px'
+    document.body.appendChild(textarea)
+    textarea.select()
+    const ok = document.execCommand('copy')
+    document.body.removeChild(textarea)
+    return ok
+  }
 }
 
 async function writeToClipboard(html, fallbackContainer) {
