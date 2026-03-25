@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
-const POPULAR_THEMES = ['wechat', 'hongfei', 'github', 'juejin', 'minimalist']
+const POPULAR_THEMES = ['wechat', 'hongfei', 'dark', 'xiaohongshu', 'literary']
 
 // ThemeBar: exported as Preview.ThemeBar for use in the unified action bar
 function ThemeBar({ theme, themeEntries = [], onThemeChange, onOpenThemeLab }) {
