@@ -131,7 +131,7 @@ export default function EditorToolbar({ textareaRef, onChange }) {
   }
 
   return (
-    <div className="flex items-center gap-0.5 px-4 py-1.5 bg-[#f6f8fa] border-b border-[#d0d7de] flex-shrink-0 overflow-x-auto">
+    <div className="flex items-center gap-0.5 px-4 py-1.5 bg-white/40 backdrop-blur-sm border-b border-black/[0.06] flex-shrink-0 overflow-x-auto">
       {buttons.map((group, gi) => (
         <div key={gi} className="flex items-center">
           {gi > 0 && <div className="w-px h-4 bg-[#d0d7de] mx-1.5" />}

@@ -58,7 +58,9 @@ const DEFAULT_MD = `# MarkCopy 使用指南 — 写出排版精美的公众号�
 ![示例图片](https://picsum.photos/600/300)
 \`\`\`
 
-> 公众号文章建议：先用 MarkCopy 排版，再在公众号编辑器里替换图片，效果最佳。
+下面是实际渲染效果：
+
+![风景示例](https://picsum.photos/id/10/800/400)
 
 ---
 
@@ -228,6 +230,8 @@ Markdown 中可以直接使用 HTML：
 构思大纲 → Markdown 写初稿 → MarkCopy 排版 → 一键复制到公众号 → 发布
 \`\`\`
 
+![工作流](https://picsum.photos/id/180/800/400)
+
 **为什么选择 Markdown + MarkCopy？**
 
 1. **专注内容**：Markdown 语法简洁，写作时不被排版分心
@@ -299,6 +303,33 @@ export default function App() {
 
   const imageStoreRef = useRef(new Map()) // img-1 → base64
   const imageCountRef = useRef(0)
+
+  // Scroll sync
+  const editorScrollRef = useRef(null)
+  const previewScrollRef = useRef(null)
+  const scrollSyncSource = useRef(null)
+
+  const handleEditorScroll = useCallback(() => {
+    if (scrollSyncSource.current === 'preview') return
+    scrollSyncSource.current = 'editor'
+    const el = editorScrollRef.current
+    const target = previewScrollRef.current
+    if (!el || !target) return
+    const ratio = el.scrollTop / (el.scrollHeight - el.clientHeight || 1)
+    target.scrollTop = ratio * (target.scrollHeight - target.clientHeight)
+    requestAnimationFrame(() => { scrollSyncSource.current = null })
+  }, [])
+
+  const handlePreviewScroll = useCallback(() => {
+    if (scrollSyncSource.current === 'editor') return
+    scrollSyncSource.current = 'preview'
+    const el = previewScrollRef.current
+    const target = editorScrollRef.current
+    if (!el || !target) return
+    const ratio = el.scrollTop / (el.scrollHeight - el.clientHeight || 1)
+    target.scrollTop = ratio * (target.scrollHeight - target.clientHeight)
+    requestAnimationFrame(() => { scrollSyncSource.current = null })
+  }, [])
 
   const handleInsertImage = useCallback((base64, name) => {
     imageCountRef.current += 1
@@ -445,9 +476,9 @@ export default function App() {
   const platformPreviewName = activePlatform === '知乎' ? '知乎预览' : activePlatform === '掘金' ? '掘金预览' : '公众号预览'
 
   return (
-    <div className="min-h-screen bg-[#f0f2f5] flex flex-col">
+    <div className="h-screen bg-[#f0f2f5] flex flex-col overflow-hidden">
       {/* 第一层：顶部导航栏 */}
-      <nav className="h-14 bg-white border-b border-[#e5e7eb] flex items-center px-4 md:px-8 flex-shrink-0">
+      <nav className="h-14 bg-white/80 backdrop-blur-xl border-b border-black/[0.06] shadow-[0_1px_3px_rgba(0,0,0,0.04)] flex items-center px-4 md:px-8 flex-shrink-0 sticky top-0 z-50">
         {/* 左侧 Logo */}
         <div className="flex items-center gap-2.5 mr-8">
           <div className="w-8 h-8 rounded-lg bg-[#3b82f6]/10 border border-[#3b82f6]/30 flex items-center justify-center text-[#3b82f6]">
@@ -495,8 +526,8 @@ export default function App() {
       {/* 第二层：编辑器 + 预览 */}
       <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
         {/* 编辑器面板 */}
-        <div className="flex flex-col flex-1 md:basis-1/2 min-h-[300px] border-r border-[#e5e7eb]">
-          <Editor value={markdown} onChange={setMarkdown} onInsertImage={handleInsertImage} onExportMd={handleExportMd} wordCount={meta.wordCount} saveStatus={saveStatus} />
+        <div className="flex flex-col flex-1 md:basis-1/2 min-h-[300px] border-r border-black/[0.06]">
+          <Editor value={markdown} onChange={setMarkdown} onInsertImage={handleInsertImage} onExportMd={handleExportMd} wordCount={meta.wordCount} saveStatus={saveStatus} onScroll={handleEditorScroll} editorRef={editorScrollRef} />
         </div>
         {/* 预览面板 */}
         <div className="flex flex-col flex-1 md:basis-1/2 min-h-[300px] bg-white" ref={previewRef}>
@@ -511,6 +542,8 @@ export default function App() {
             onThemeChange={setTheme}
             onCopy={handleCopy}
             onOpenThemeLab={handleOpenThemeLab}
+            onScroll={handlePreviewScroll}
+            scrollRef={previewScrollRef}
           />
         </div>
       </div>
