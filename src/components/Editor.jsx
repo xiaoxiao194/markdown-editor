@@ -33,7 +33,7 @@ export default function Editor({ value, onChange, onInsertImage, onScroll, edito
     <div className="flex flex-col h-full" onDrop={handleDrop} onDragOver={(e) => e.preventDefault()}>
       <textarea
         ref={textareaRef}
-        className="editor-textarea flex-1 w-full px-8 py-6 text-[15px] resize-none outline-none bg-white text-[#111c2d]/90 leading-relaxed font-mono"
+        className="editor-textarea flex-1 w-full px-8 py-6 pb-20 text-[15px] resize-none outline-none bg-white text-[#111c2d]/90 leading-relaxed font-mono"
         placeholder="在这里输入 Markdown 内容，或拖拽 .md 文件到此处..."
         value={value}
         onChange={(e) => onChange(e.target.value)}

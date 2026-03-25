@@ -295,6 +295,7 @@ export default function App() {
     } catch { return 'wechat' }
   })
   const [activePlatform, setActivePlatform] = useState('微信公众号')
+  const [showToolbar, setShowToolbar] = useState(true)
   const [publishDate] = useState(() => new Date())
   const previewRef = useRef(null)
   const [customThemes, setCustomThemes] = useState(() => loadStoredThemes())
@@ -543,10 +544,20 @@ export default function App() {
         <div className="flex flex-col flex-1 md:basis-[45%] min-h-[300px] relative bg-white">
           <Editor value={markdown} onChange={setMarkdown} onInsertImage={handleInsertImage} onScroll={handleEditorScroll} editorRef={editorScrollRef} textareaRef={textareaRef} />
           {/* 浮动工具栏 */}
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30">
-            <div className="flex items-center gap-1.5 p-2.5 bg-white/90 backdrop-blur-xl border border-[#111c2d]/[0.06] shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-2xl">
-              <EditorToolbar textareaRef={textareaRef} onChange={setMarkdown} />
-            </div>
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 transition-all duration-300">
+            {showToolbar ? (
+              <div className="flex items-center gap-1.5 p-2.5 bg-white/90 backdrop-blur-xl border border-[#111c2d]/[0.06] shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-2xl">
+                <EditorToolbar textareaRef={textareaRef} onChange={setMarkdown} />
+                <div className="w-px h-5 bg-black/[0.08] mx-1" />
+                <button onClick={() => setShowToolbar(false)} className="w-8 h-8 flex items-center justify-center rounded-xl text-[#515f74]/60 hover:text-[#111c2d] hover:bg-black/[0.06] transition-all" title="收起工具栏">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 15 12 9 18 15"/></svg>
+                </button>
+              </div>
+            ) : (
+              <button onClick={() => setShowToolbar(true)} className="p-3 bg-white/90 backdrop-blur-xl border border-[#111c2d]/[0.06] shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-2xl text-[#515f74]/60 hover:text-[#111c2d] transition-all hover:scale-105" title="展开工具栏">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+              </button>
+            )}
           </div>
         </div>
         {/* 预览面板 — 温暖灰背景 */}
