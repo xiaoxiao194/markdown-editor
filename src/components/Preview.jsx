@@ -52,7 +52,7 @@ function ThemeBar({ theme, themeEntries = [], onThemeChange, onOpenThemeLab }) {
           </svg>
         </button>
         {showMore && (
-          <div className="absolute left-0 top-full mt-1.5 bg-white/95 backdrop-blur-xl rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-black/[0.06] py-1.5 z-50 min-w-[150px]">
+          <div className="absolute left-0 bottom-full mb-1.5 bg-white/95 backdrop-blur-xl rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-black/[0.06] py-1.5 z-50 min-w-[150px]">
             {moreEntries.map(([key, t]) => (
               <button
                 key={key}
