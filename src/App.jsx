@@ -481,72 +481,43 @@ export default function App() {
   const platformPreviewName = activePlatform === '知乎' ? '知乎预览' : activePlatform === '掘金' ? '掘金预览' : '公众号预览'
 
   return (
-    <div className="h-screen bg-[#f0f2f5] flex flex-col overflow-hidden">
-      {/* 第一层：顶部导航栏 */}
-      <nav className="h-14 bg-white/80 backdrop-blur-xl border-b border-black/[0.06] shadow-[0_1px_3px_rgba(0,0,0,0.04)] flex items-center px-4 md:px-8 flex-shrink-0 sticky top-0 z-50">
-        {/* 左侧 Logo */}
-        <div className="flex items-center gap-2.5 mr-8">
-          <div className="w-8 h-8 rounded-lg bg-[#3b82f6]/10 border border-[#3b82f6]/30 flex items-center justify-center text-[#3b82f6]">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-              <polyline points="14 2 14 8 20 8"/>
-              <line x1="9" y1="13" x2="9" y2="17"/>
-              <line x1="9" y1="13" x2="12" y2="10"/>
-              <line x1="9" y1="17" x2="12" y2="20"/>
-              <line x1="15" y1="13" x2="15" y2="17"/>
-            </svg>
-          </div>
-          <span className="text-base font-bold text-[#1f2328] tracking-tight">MarkCopy</span>
-        </div>
+    <div className="h-screen bg-[#f9f9ff] flex flex-col overflow-hidden">
+      {/* 顶部导航栏 — 合并所有操作 */}
+      <nav className="h-14 bg-[#f9f9ff]/80 backdrop-blur-xl border-b border-[#111c2d]/[0.05] flex items-center px-6 md:px-8 flex-shrink-0 sticky top-0 z-50">
+        {/* Logo */}
+        <span className="text-lg font-bold text-[#111c2d] tracking-tight mr-8 italic">MarkCopy</span>
 
-        {/* 中间 平台 Tab */}
-        <div className="flex items-center h-full gap-6">
+        {/* 平台 Tab */}
+        <div className="flex items-center h-full gap-8">
           {['微信公众号', '知乎', '掘金'].map((name) => (
             <button
               key={name}
-              className={`relative h-full px-1 text-sm font-medium transition-all duration-200 ${
+              className={`relative h-full px-1 text-sm tracking-tight transition-all duration-200 ${
                 activePlatform === name
-                  ? 'text-[#1f2328]'
-                  : 'text-[#656d76]/70 hover:text-[#1f2328] hover:-translate-y-px'
+                  ? 'text-[#111c2d] font-semibold'
+                  : 'text-[#515f74]/70 font-medium hover:text-[#111c2d] hover:-translate-y-px'
               }`}
               onClick={() => setActivePlatform(name)}
             >
               {name}
               {activePlatform === name && (
-                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3 h-0.5 bg-[#1f2328] rounded-full" />
+                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3 h-0.5 bg-[#111c2d] rounded-full" />
               )}
             </button>
           ))}
         </div>
 
-        {/* 右侧 GitHub */}
-        <div className="ml-auto flex items-center">
-          <a href="https://github.com/xiaoxiao194/markdown-editor" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-[#656d76] hover:text-[#1f2328] hover:bg-[#f6f8fa] transition-colors duration-150">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
-            <span className="hidden sm:inline">GitHub</span>
-          </a>
-        </div>
-      </nav>
-
-      {/* 第二层：统一操作栏 */}
-      <div className="flex items-center h-10 bg-white/70 backdrop-blur-sm border-b border-black/[0.04] flex-shrink-0">
-        {/* 左侧：编辑器信息 */}
-        <div className="flex items-center px-5 md:basis-[45%] h-full text-xs">
-          <span className="text-[#656d76]/70 font-medium">{meta.wordCount} 字</span>
-          <div className="ml-auto flex items-center gap-1 flex-shrink-0">
-            <label className="cursor-pointer px-2.5 py-1 rounded-full text-[#656d76]/70 hover:text-[#1f2328] hover:bg-black/[0.04] transition-all duration-200 font-medium flex items-center gap-1.5">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-              上传
-              <input type="file" accept=".md" className="hidden" onChange={handleFileInput} />
-            </label>
-            <button onClick={handleExportMd} className="px-2.5 py-1 rounded-full text-[#656d76]/70 hover:text-[#1f2328] hover:bg-black/[0.04] transition-all duration-200 font-medium flex items-center gap-1.5">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              导出
-            </button>
-          </div>
-        </div>
-        {/* 右侧：主题选择 + 复制 */}
-        <div className="flex items-center gap-1 px-5 md:basis-[55%] h-full">
+        {/* 右侧操作区 */}
+        <div className="ml-auto flex items-center gap-2">
+          <span className="text-xs text-[#515f74]/60 font-medium mr-2">{meta.wordCount} 字</span>
+          <label className="cursor-pointer p-2 rounded-lg text-[#515f74]/60 hover:text-[#111c2d] hover:bg-[#111c2d]/[0.04] transition-all duration-200">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <input type="file" accept=".md" className="hidden" onChange={handleFileInput} />
+          </label>
+          <button onClick={handleExportMd} className="p-2 rounded-lg text-[#515f74]/60 hover:text-[#111c2d] hover:bg-[#111c2d]/[0.04] transition-all duration-200">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </button>
+          <div className="w-px h-5 bg-[#111c2d]/[0.08] mx-1" />
           <Preview.ThemeBar
             theme={theme}
             themeEntries={themeEntries}
@@ -555,27 +526,30 @@ export default function App() {
           />
           <button
             onClick={handleCopy}
-            className="ml-auto flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 select-none bg-[#1f2328] text-white hover:bg-[#000] hover:shadow-lg hover:shadow-black/15 active:scale-95"
+            className="ml-2 flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[11px] uppercase tracking-widest font-bold transition-all duration-200 select-none bg-[#111c2d] text-white hover:shadow-lg hover:shadow-[#111c2d]/20 active:scale-95"
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-            复制到公众号
+            复制
           </button>
+          <a href="https://github.com/xiaoxiao194/markdown-editor" target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg text-[#515f74]/60 hover:text-[#111c2d] hover:bg-[#111c2d]/[0.04] transition-all duration-200 ml-1">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+          </a>
         </div>
-      </div>
+      </nav>
 
-      {/* 第三层：编辑器 + 预览 */}
+      {/* 编辑器 + 预览 */}
       <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
         {/* 编辑器面板 — 纯白写作面 */}
-        <div className="flex flex-col flex-1 md:basis-[45%] min-h-[300px] relative">
+        <div className="flex flex-col flex-1 md:basis-[45%] min-h-[300px] relative bg-white">
           <Editor value={markdown} onChange={setMarkdown} onInsertImage={handleInsertImage} onScroll={handleEditorScroll} editorRef={editorScrollRef} textareaRef={textareaRef} />
           {/* 浮动工具栏 */}
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30">
-            <div className="flex items-center gap-1 p-2 bg-white/90 backdrop-blur-xl border border-black/[0.06] shadow-[0_16px_48px_rgba(0,0,0,0.12)] rounded-2xl">
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30">
+            <div className="flex items-center gap-1.5 p-2.5 bg-white/90 backdrop-blur-xl border border-[#111c2d]/[0.06] shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-2xl">
               <EditorToolbar textareaRef={textareaRef} onChange={setMarkdown} />
             </div>
           </div>
         </div>
-        {/* 预览面板 — 微灰背景 */}
+        {/* 预览面板 — 温暖灰背景 */}
         <div className="flex flex-col flex-1 md:basis-[55%] min-h-[300px] bg-[#f9f9ff]" ref={previewRef}>
           <Preview
             html={html}
