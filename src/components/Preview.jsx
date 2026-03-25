@@ -1,16 +1,21 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 
 const POPULAR_THEMES = ['wechat', 'github', 'juejin', 'minimalist']
 
 // ThemeBar: exported as Preview.ThemeBar for use in the unified action bar
 function ThemeBar({ theme, themeEntries = [], onThemeChange, onOpenThemeLab }) {
   const [showMore, setShowMore] = useState(false)
+  const [dropPos, setDropPos] = useState({ top: 0, left: 0 })
   const moreRef = useRef(null)
+  const btnRef = useRef(null)
 
   useEffect(() => {
     if (!showMore) return
     const handler = (e) => {
-      if (moreRef.current && !moreRef.current.contains(e.target)) setShowMore(false)
+      if (moreRef.current?.contains(e.target)) return
+      if (btnRef.current?.contains(e.target)) return
+      setShowMore(false)
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
@@ -37,9 +42,16 @@ function ThemeBar({ theme, themeEntries = [], onThemeChange, onOpenThemeLab }) {
           {t.name}
         </button>
       ))}
-      <div className="relative" ref={moreRef}>
+      <div ref={moreRef}>
         <button
-          onClick={() => setShowMore((v) => !v)}
+          ref={btnRef}
+          onClick={() => {
+            if (!showMore && btnRef.current) {
+              const rect = btnRef.current.getBoundingClientRect()
+              setDropPos({ top: rect.bottom + 6, left: Math.min(rect.left, window.innerWidth - 160) })
+            }
+            setShowMore((v) => !v)
+          }}
           className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all duration-150 flex items-center gap-1 ${
             isMoreActive
               ? 'bg-[#1f2328] text-white shadow-sm'
@@ -51,8 +63,8 @@ function ThemeBar({ theme, themeEntries = [], onThemeChange, onOpenThemeLab }) {
             <polyline points="6 9 12 15 18 9"/>
           </svg>
         </button>
-        {showMore && (
-          <div className="absolute left-0 bottom-full mb-1.5 bg-white/95 backdrop-blur-xl rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-black/[0.06] py-1.5 z-50 min-w-[150px]">
+        {showMore && createPortal(
+          <div ref={moreRef} className="fixed w-[150px] bg-white/95 backdrop-blur-xl rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-black/[0.06] py-1.5 z-[999]" style={{ top: dropPos.top, left: dropPos.left }}>
             {moreEntries.map(([key, t]) => (
               <button
                 key={key}
@@ -73,7 +85,8 @@ function ThemeBar({ theme, themeEntries = [], onThemeChange, onOpenThemeLab }) {
             >
               ⚙ 主题实验室...
             </button>
-          </div>
+          </div>,
+          document.body
         )}
       </div>
     </div>
