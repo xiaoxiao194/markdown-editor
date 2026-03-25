@@ -463,6 +463,16 @@ export default function App() {
     setThemeLab(createEmptyLabState())
   }
 
+  const handleFileInput = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onload = (ev) => setMarkdown(ev.target.result)
+      reader.readAsText(file)
+    }
+    e.target.value = ''
+  }
+
   const handleExportMd = useCallback(() => {
     const blob = new Blob([markdown], { type: 'text/markdown' })
     const url = URL.createObjectURL(blob)
@@ -523,11 +533,49 @@ export default function App() {
         </div>
       </nav>
 
-      {/* 第二层：编辑器 + 预览 */}
+      {/* 第二层：统一操作栏 */}
+      <div className="flex items-center h-10 bg-white/70 backdrop-blur-sm border-b border-black/[0.06] flex-shrink-0">
+        {/* 左侧：编辑器信息 */}
+        <div className="flex items-center gap-3 px-4 flex-1 md:basis-1/2 border-r border-black/[0.06] h-full text-xs">
+          <span className="text-[#656d76] font-medium">{meta.wordCount} 字</span>
+          <span className={`text-[#9ca3af] transition-opacity duration-500 ${saveStatus === 'saved' ? 'opacity-100' : 'opacity-0'}`}>
+            ✓ 已保存
+          </span>
+          <div className="ml-auto flex items-center gap-1.5">
+            <label className="cursor-pointer px-2.5 py-1 rounded-full text-[#656d76] hover:text-[#1f2328] hover:bg-black/[0.04] transition-colors duration-150 font-medium flex items-center gap-1.5">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              上传
+              <input type="file" accept=".md" className="hidden" onChange={handleFileInput} />
+            </label>
+            <button onClick={handleExportMd} className="px-2.5 py-1 rounded-full text-[#656d76] hover:text-[#1f2328] hover:bg-black/[0.04] transition-colors duration-150 font-medium flex items-center gap-1.5">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              导出
+            </button>
+          </div>
+        </div>
+        {/* 右侧：主题选择 + 复制 */}
+        <div className="flex items-center gap-1 px-4 flex-1 md:basis-1/2 h-full">
+          <Preview.ThemeBar
+            theme={theme}
+            themeEntries={themeEntries}
+            onThemeChange={setTheme}
+            onOpenThemeLab={handleOpenThemeLab}
+          />
+          <button
+            onClick={handleCopy}
+            className="ml-auto flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 select-none bg-[#1f2328] text-white hover:bg-[#000] hover:shadow-lg hover:shadow-black/15 active:scale-95"
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            复制到公众号
+          </button>
+        </div>
+      </div>
+
+      {/* 第三层：编辑器 + 预览 */}
       <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
         {/* 编辑器面板 */}
         <div className="flex flex-col flex-1 md:basis-1/2 min-h-[300px] border-r border-black/[0.06]">
-          <Editor value={markdown} onChange={setMarkdown} onInsertImage={handleInsertImage} onExportMd={handleExportMd} wordCount={meta.wordCount} saveStatus={saveStatus} onScroll={handleEditorScroll} editorRef={editorScrollRef} />
+          <Editor value={markdown} onChange={setMarkdown} onInsertImage={handleInsertImage} onScroll={handleEditorScroll} editorRef={editorScrollRef} />
         </div>
         {/* 预览面板 */}
         <div className="flex flex-col flex-1 md:basis-1/2 min-h-[300px] bg-white" ref={previewRef}>
@@ -535,13 +583,6 @@ export default function App() {
             html={html}
             themeConfig={previewThemeConfig}
             meta={meta}
-            labPreviewName={themeLab.open ? themeLab.name : ''}
-            platformName={platformPreviewName}
-            theme={theme}
-            themeEntries={themeEntries}
-            onThemeChange={setTheme}
-            onCopy={handleCopy}
-            onOpenThemeLab={handleOpenThemeLab}
             onScroll={handlePreviewScroll}
             scrollRef={previewScrollRef}
           />
