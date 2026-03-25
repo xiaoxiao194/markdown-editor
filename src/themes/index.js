@@ -444,7 +444,7 @@ export const builtInThemes = {
   },
   hongfei: {
     id: 'hongfei',
-    name: '红绯',
+    name: '红绯丹彩',
     css: `
       .preview-body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 16px; line-height: 1.8; color: #333; background: #fff; padding: 24px; }
       .preview-body h1 { font-size: 1.6em; font-weight: 700; margin: 0 0 1em; color: #000; text-align: center; }
