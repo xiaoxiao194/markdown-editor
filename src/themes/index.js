@@ -442,6 +442,34 @@ export const builtInThemes = {
       .preview-body hr { border: none; border-top: 1px solid #aaa; margin: 32px 0; }
     `,
   },
+  hongfei: {
+    id: 'hongfei',
+    name: '红绯',
+    css: `
+      .preview-body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 16px; line-height: 1.8; color: #333; background: #fff; padding: 24px; }
+      .preview-body h1 { font-size: 1.6em; font-weight: 700; margin: 0 0 1em; color: #000; text-align: center; }
+      .preview-body h2 { font-size: 1.3em; font-weight: 700; margin: 1.6em 0 0.8em; color: #000; padding-left: 12px; border-left: 4px solid #e64a19; }
+      .preview-body h3 { font-size: 1.1em; font-weight: 700; margin: 1.4em 0 0.6em; color: #000; padding-left: 12px; border-left: 4px solid #e64a19; }
+      .preview-body h4 { font-size: 1em; font-weight: 700; margin: 1.2em 0 0.5em; color: #000; }
+      .preview-body p { margin: 0 0 1em; text-align: justify; }
+      .preview-body a { color: #e64a19; text-decoration: none; border-bottom: 1px solid #e64a19; }
+      .preview-body a:hover { color: #bf360c; }
+      .preview-body strong { color: #e64a19; font-weight: 700; }
+      .preview-body em { font-style: italic; color: #555; }
+      .preview-body code { font-family: "SFMono-Regular", Consolas, monospace; font-size: 85%; background: #fff5f0; padding: 0.2em 0.4em; border-radius: 3px; color: #e64a19; }
+      .preview-body pre { background: #2b2b2b; border-radius: 6px; padding: 16px; overflow: auto; margin: 0 0 1em; }
+      .preview-body pre code { background: none; padding: 0; color: #a9b7c6; font-size: 90%; }
+      .preview-body blockquote { margin: 0 0 1em; padding: 12px 16px; border-left: 4px solid #e64a19; background: #fff5f0; border-radius: 0 4px 4px 0; color: #666; }
+      .preview-body ul, .preview-body ol { padding-left: 1.5em; margin: 0 0 1em; }
+      .preview-body li { margin: 6px 0; }
+      .preview-body table { border-collapse: collapse; width: 100%; margin: 0 0 1em; }
+      .preview-body th, .preview-body td { border: 1px solid #e0e0e0; padding: 8px 13px; }
+      .preview-body th { background: #fff5f0; font-weight: 600; color: #333; }
+      .preview-body tr:nth-child(even) { background: #fafafa; }
+      .preview-body img { max-width: 100%; border-radius: 4px; display: block; margin: 1em auto; }
+      .preview-body hr { border: none; border-top: 1px solid #e0e0e0; margin: 24px 0; }
+    `,
+  },
 }
 
 export const themes = builtInThemes
