@@ -500,20 +500,20 @@ export default function App() {
         </div>
 
         {/* 中间 平台 Tab */}
-        <div className="flex items-center h-full gap-0">
+        <div className="flex items-center h-full gap-6">
           {['微信公众号', '知乎', '掘金'].map((name) => (
             <button
               key={name}
-              className={`relative h-full px-4 text-sm font-medium transition-colors duration-150 ${
+              className={`relative h-full px-1 text-sm font-medium transition-all duration-200 ${
                 activePlatform === name
-                  ? 'text-[#3b82f6]'
-                  : 'text-[#656d76] hover:text-[#1f2328]'
+                  ? 'text-[#1f2328]'
+                  : 'text-[#656d76]/70 hover:text-[#1f2328] hover:-translate-y-px'
               }`}
               onClick={() => setActivePlatform(name)}
             >
               {name}
               {activePlatform === name && (
-                <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-[#3b82f6] rounded-full" />
+                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3 h-0.5 bg-[#1f2328] rounded-full" />
               )}
             </button>
           ))}
@@ -529,26 +529,24 @@ export default function App() {
       </nav>
 
       {/* 第二层：统一操作栏 */}
-      <div className="flex items-center h-10 bg-white/70 backdrop-blur-sm border-b border-black/[0.06] flex-shrink-0">
-        {/* 左侧：工具栏 + 编辑器信息 */}
-        <div className="flex items-center px-2 md:basis-[45%] border-r border-black/[0.06] h-full text-xs overflow-x-auto">
-          <EditorToolbar textareaRef={textareaRef} onChange={setMarkdown} />
-          <div className="w-px h-4 bg-[#d0d7de] mx-1.5 flex-shrink-0" />
-          <span className="text-[#656d76] font-medium flex-shrink-0">{meta.wordCount} 字</span>
-          <div className="ml-auto flex items-center gap-0.5 flex-shrink-0">
-            <label className="cursor-pointer px-2 py-1 rounded-full text-[#656d76] hover:text-[#1f2328] hover:bg-black/[0.04] transition-colors duration-150 font-medium flex items-center gap-1">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <div className="flex items-center h-10 bg-white/70 backdrop-blur-sm border-b border-black/[0.04] flex-shrink-0">
+        {/* 左侧：编辑器信息 */}
+        <div className="flex items-center px-5 md:basis-[45%] h-full text-xs">
+          <span className="text-[#656d76]/70 font-medium">{meta.wordCount} 字</span>
+          <div className="ml-auto flex items-center gap-1 flex-shrink-0">
+            <label className="cursor-pointer px-2.5 py-1 rounded-full text-[#656d76]/70 hover:text-[#1f2328] hover:bg-black/[0.04] transition-all duration-200 font-medium flex items-center gap-1.5">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
               上传
               <input type="file" accept=".md" className="hidden" onChange={handleFileInput} />
             </label>
-            <button onClick={handleExportMd} className="px-2 py-1 rounded-full text-[#656d76] hover:text-[#1f2328] hover:bg-black/[0.04] transition-colors duration-150 font-medium flex items-center gap-1">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <button onClick={handleExportMd} className="px-2.5 py-1 rounded-full text-[#656d76]/70 hover:text-[#1f2328] hover:bg-black/[0.04] transition-all duration-200 font-medium flex items-center gap-1.5">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               导出
             </button>
           </div>
         </div>
         {/* 右侧：主题选择 + 复制 */}
-        <div className="flex items-center gap-1 px-4 md:basis-[55%] h-full">
+        <div className="flex items-center gap-1 px-5 md:basis-[55%] h-full">
           <Preview.ThemeBar
             theme={theme}
             themeEntries={themeEntries}
@@ -567,12 +565,18 @@ export default function App() {
 
       {/* 第三层：编辑器 + 预览 */}
       <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
-        {/* 编辑器面板 */}
-        <div className="flex flex-col flex-1 md:basis-[45%] min-h-[300px] border-r border-black/[0.06]">
+        {/* 编辑器面板 — 纯白写作面 */}
+        <div className="flex flex-col flex-1 md:basis-[45%] min-h-[300px] relative">
           <Editor value={markdown} onChange={setMarkdown} onInsertImage={handleInsertImage} onScroll={handleEditorScroll} editorRef={editorScrollRef} textareaRef={textareaRef} />
+          {/* 浮动工具栏 */}
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30">
+            <div className="flex items-center gap-1 p-2 bg-white/90 backdrop-blur-xl border border-black/[0.06] shadow-[0_16px_48px_rgba(0,0,0,0.12)] rounded-2xl">
+              <EditorToolbar textareaRef={textareaRef} onChange={setMarkdown} />
+            </div>
+          </div>
         </div>
-        {/* 预览面板 */}
-        <div className="flex flex-col flex-1 md:basis-[55%] min-h-[300px] bg-white" ref={previewRef}>
+        {/* 预览面板 — 微灰背景 */}
+        <div className="flex flex-col flex-1 md:basis-[55%] min-h-[300px] bg-[#f9f9ff]" ref={previewRef}>
           <Preview
             html={html}
             themeConfig={previewThemeConfig}

@@ -131,17 +131,17 @@ export default function EditorToolbar({ textareaRef, onChange }) {
   }
 
   return (
-    <div className="flex items-center gap-0.5 flex-shrink-0">
+    <div className="flex items-center gap-1 flex-shrink-0">
       {buttons.map((group, gi) => (
         <div key={gi} className="flex items-center">
-          {gi > 0 && <div className="w-px h-4 bg-[#d0d7de] mx-1.5" />}
+          {gi > 0 && <div className="w-px h-5 bg-black/[0.08] mx-2" />}
           {group.map((btn) => (
             <button
               key={btn.type}
               type="button"
               title={btn.title}
               onClick={() => handleClick(btn.type)}
-              className="w-7 h-7 flex items-center justify-center rounded text-[#656d76] hover:text-[#1f2328] hover:bg-[#e1e4e8] transition-colors duration-100"
+              className="w-8 h-8 flex items-center justify-center rounded-xl text-[#656d76] hover:text-[#1f2328] hover:bg-black/[0.06] transition-all duration-150 hover:scale-105 active:scale-95"
             >
               {btn.icon ? icons[btn.icon] : <span className={`text-xs ${btn.style || ''}`}>{btn.label}</span>}
             </button>
