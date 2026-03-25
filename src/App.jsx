@@ -420,11 +420,11 @@ export default function App() {
     const container = previewRef.current?.querySelector('.preview-body')
     if (!container) return false
     const ok = copyTarget === 'zhihu'
-      ? await copyForZhihu(container)
+      ? await copyForZhihu(container, () => parseMarkdown(markdown, imageStoreRef.current))
       : await copyRichText(container)
     if (ok) setToastVisible(true)
     return ok
-  }, [copyTarget])
+  }, [copyTarget, markdown])
 
   const handleOpenThemeLab = () => {
     const base = themeOptions[theme] ?? builtInThemes.wechat

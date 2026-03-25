@@ -8,15 +8,20 @@ export async function copyRichText(container) {
 }
 
 /**
- * 知乎专用复制 — 复制干净的语义HTML（无class/无inline style）
- * 知乎编辑器会保留语义标签（h1-h4, strong, em, blockquote, ul, ol, a, code, pre, img, table等）
- * 并自动套用知乎自己的样式
- * 注意：需要在知乎的富文本模式（非Markdown模式）下粘贴
+ * 知乎专用复制 — 从 Markdown 原文生成干净语义 HTML
+ * 绕过主题渲染的包装div，直接输出 h1/h2/p/strong/blockquote 等语义标签
+ * 知乎富文本编辑器会自动套用自己的样式
  */
-export async function copyForZhihu(container) {
-  const clone = container.cloneNode(true)
-  cleanForZhihu(clone)
-  return writeToClipboard(clone.outerHTML, container)
+export async function copyForZhihu(container, renderCleanHtml) {
+  const html = renderCleanHtml()
+  try {
+    const blob = new Blob([html], { type: 'text/html' })
+    const item = new ClipboardItem({ 'text/html': blob })
+    await navigator.clipboard.write([item])
+    return true
+  } catch {
+    return fallbackCopy(container)
+  }
 }
 
 async function writeToClipboard(html, fallbackContainer) {
