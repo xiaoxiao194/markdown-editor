@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react'
 import Editor from './components/Editor.jsx'
+import EditorToolbar from './components/EditorToolbar.jsx'
 import Preview from './components/Preview.jsx'
 import ThemeLab from './components/ThemeLab.jsx'
 import Toast from './components/Toast.jsx'
@@ -301,6 +302,7 @@ export default function App() {
   const [themeLab, setThemeLab] = useState(createEmptyLabState)
   const [toastVisible, setToastVisible] = useState(false)
 
+  const textareaRef = useRef(null)
   const imageStoreRef = useRef(new Map()) // img-1 → base64
   const imageCountRef = useRef(0)
 
@@ -535,20 +537,22 @@ export default function App() {
 
       {/* 第二层：统一操作栏 */}
       <div className="flex items-center h-10 bg-white/70 backdrop-blur-sm border-b border-black/[0.06] flex-shrink-0">
-        {/* 左侧：编辑器信息 */}
-        <div className="flex items-center gap-3 px-4 flex-1 md:basis-1/2 border-r border-black/[0.06] h-full text-xs">
-          <span className="text-[#656d76] font-medium">{meta.wordCount} 字</span>
-          <span className={`text-[#9ca3af] transition-opacity duration-500 ${saveStatus === 'saved' ? 'opacity-100' : 'opacity-0'}`}>
-            ✓ 已保存
+        {/* 左侧：工具栏 + 编辑器信息 */}
+        <div className="flex items-center px-2 flex-1 md:basis-1/2 border-r border-black/[0.06] h-full text-xs overflow-x-auto">
+          <EditorToolbar textareaRef={textareaRef} onChange={setMarkdown} />
+          <div className="w-px h-4 bg-[#d0d7de] mx-1.5 flex-shrink-0" />
+          <span className="text-[#656d76] font-medium flex-shrink-0">{meta.wordCount} 字</span>
+          <span className={`text-[#9ca3af] ml-1.5 flex-shrink-0 transition-opacity duration-500 ${saveStatus === 'saved' ? 'opacity-100' : 'opacity-0'}`}>
+            ✓
           </span>
-          <div className="ml-auto flex items-center gap-1.5">
-            <label className="cursor-pointer px-2.5 py-1 rounded-full text-[#656d76] hover:text-[#1f2328] hover:bg-black/[0.04] transition-colors duration-150 font-medium flex items-center gap-1.5">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <div className="ml-auto flex items-center gap-0.5 flex-shrink-0">
+            <label className="cursor-pointer px-2 py-1 rounded-full text-[#656d76] hover:text-[#1f2328] hover:bg-black/[0.04] transition-colors duration-150 font-medium flex items-center gap-1">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
               上传
               <input type="file" accept=".md" className="hidden" onChange={handleFileInput} />
             </label>
-            <button onClick={handleExportMd} className="px-2.5 py-1 rounded-full text-[#656d76] hover:text-[#1f2328] hover:bg-black/[0.04] transition-colors duration-150 font-medium flex items-center gap-1.5">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <button onClick={handleExportMd} className="px-2 py-1 rounded-full text-[#656d76] hover:text-[#1f2328] hover:bg-black/[0.04] transition-colors duration-150 font-medium flex items-center gap-1">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               导出
             </button>
           </div>
@@ -575,7 +579,7 @@ export default function App() {
       <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
         {/* 编辑器面板 */}
         <div className="flex flex-col flex-1 md:basis-1/2 min-h-[300px] border-r border-black/[0.06]">
-          <Editor value={markdown} onChange={setMarkdown} onInsertImage={handleInsertImage} onScroll={handleEditorScroll} editorRef={editorScrollRef} />
+          <Editor value={markdown} onChange={setMarkdown} onInsertImage={handleInsertImage} onScroll={handleEditorScroll} editorRef={editorScrollRef} textareaRef={textareaRef} />
         </div>
         {/* 预览面板 */}
         <div className="flex flex-col flex-1 md:basis-1/2 min-h-[300px] bg-white" ref={previewRef}>

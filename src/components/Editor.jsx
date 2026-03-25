@@ -1,12 +1,9 @@
-import { useRef, useEffect } from 'react'
-import EditorToolbar from './EditorToolbar.jsx'
+import { useEffect } from 'react'
 
-export default function Editor({ value, onChange, onInsertImage, onScroll, editorRef }) {
-  const textareaRef = useRef(null)
-
+export default function Editor({ value, onChange, onInsertImage, onScroll, editorRef, textareaRef }) {
   useEffect(() => {
     if (editorRef) editorRef.current = textareaRef.current
-  }, [editorRef])
+  }, [editorRef, textareaRef])
 
   const handleDrop = (e) => {
     e.preventDefault()
@@ -34,7 +31,6 @@ export default function Editor({ value, onChange, onInsertImage, onScroll, edito
 
   return (
     <div className="flex flex-col h-full" onDrop={handleDrop} onDragOver={(e) => e.preventDefault()}>
-      <EditorToolbar textareaRef={textareaRef} onChange={onChange} />
       <textarea
         ref={textareaRef}
         className="editor-textarea flex-1 w-full p-4 text-sm resize-none outline-none bg-white text-[#1f2328] leading-relaxed"
