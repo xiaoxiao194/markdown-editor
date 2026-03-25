@@ -294,7 +294,6 @@ export default function App() {
       return localStorage.getItem(THEME_STORAGE_KEY) || 'wechat'
     } catch { return 'wechat' }
   })
-  const [activePlatform, setActivePlatform] = useState('微信公众号')
   const [publishDate] = useState(() => new Date())
   const previewRef = useRef(null)
   const [customThemes, setCustomThemes] = useState(() => loadStoredThemes())
@@ -478,7 +477,6 @@ export default function App() {
     URL.revokeObjectURL(url)
   }, [markdown])
 
-  const platformPreviewName = activePlatform === '知乎' ? '知乎预览' : activePlatform === '掘金' ? '掘金预览' : '公众号预览'
 
   return (
     <div className="h-screen bg-[#f0f2f5] flex flex-col overflow-hidden">
@@ -499,33 +497,8 @@ export default function App() {
           <span className="text-base font-bold text-[#1f2328] tracking-tight">MarkCopy</span>
         </div>
 
-        {/* 中间 平台 Tab */}
-        <div className="flex items-center h-full gap-0">
-          {['微信公众号', '知乎', '掘金'].map((name) => (
-            <button
-              key={name}
-              className={`relative h-full px-4 text-sm font-medium transition-colors duration-150 ${
-                activePlatform === name
-                  ? 'text-[#3b82f6]'
-                  : 'text-[#656d76] hover:text-[#1f2328]'
-              }`}
-              onClick={() => setActivePlatform(name)}
-            >
-              {name}
-              {activePlatform === name && (
-                <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-[#3b82f6] rounded-full" />
-              )}
-            </button>
-          ))}
-        </div>
-
-        {/* 右侧 GitHub */}
-        <div className="ml-auto flex items-center">
-          <a href="https://github.com/xiaoxiao194/markdown-editor" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-[#656d76] hover:text-[#1f2328] hover:bg-[#f6f8fa] transition-colors duration-150">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
-            <span className="hidden sm:inline">GitHub</span>
-          </a>
-        </div>
+        {/* 右侧留空 */}
+        <div className="ml-auto" />
       </nav>
 
       {/* 第二层：统一操作栏 */}
