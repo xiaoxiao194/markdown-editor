@@ -488,25 +488,8 @@ export default function App() {
         {/* Logo */}
         <span className="text-lg font-bold text-[#111c2d] tracking-tight mr-8 italic">MarkCopy</span>
 
-        {/* 平台 Tab */}
-        <div className="flex items-center h-full gap-8">
-          {['微信公众号', '知乎', '掘金'].map((name) => (
-            <button
-              key={name}
-              className={`relative h-full px-1 text-sm tracking-tight transition-all duration-200 ${
-                activePlatform === name
-                  ? 'text-[#111c2d] font-semibold'
-                  : 'text-[#515f74]/70 font-medium hover:text-[#111c2d] hover:-translate-y-px'
-              }`}
-              onClick={() => setActivePlatform(name)}
-            >
-              {name}
-              {activePlatform === name && (
-                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3 h-0.5 bg-[#111c2d] rounded-full" />
-              )}
-            </button>
-          ))}
-        </div>
+        {/* 平台标识 */}
+        <span className="text-sm text-[#515f74]/70 font-medium">微信公众号排版</span>
 
         {/* 右侧操作区 */}
         <div className="ml-auto flex items-center gap-2">
@@ -554,8 +537,9 @@ export default function App() {
                 </button>
               </div>
             ) : (
-              <button onClick={() => setShowToolbar(true)} className="p-3 bg-white/90 backdrop-blur-xl border border-[#111c2d]/[0.06] shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-2xl text-[#515f74]/60 hover:text-[#111c2d] transition-all hover:scale-105" title="展开工具栏">
+              <button onClick={() => setShowToolbar(true)} className="flex items-center gap-2 px-4 py-2.5 bg-white/90 backdrop-blur-xl border border-[#111c2d]/[0.06] shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-2xl text-[#515f74] hover:text-[#111c2d] transition-all hover:scale-105" title="展开工具栏">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+                <span className="text-xs font-medium">工具栏</span>
               </button>
             )}
           </div>
