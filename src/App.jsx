@@ -420,11 +420,11 @@ export default function App() {
     const container = previewRef.current?.querySelector('.preview-body')
     if (!container) return false
     const ok = copyTarget === 'zhihu'
-      ? await copyForZhihu(container, markdown)
+      ? await copyForZhihu(container)
       : await copyRichText(container)
     if (ok) setToastVisible(true)
     return ok
-  }, [copyTarget, markdown])
+  }, [copyTarget])
 
   const handleOpenThemeLab = () => {
     const base = themeOptions[theme] ?? builtInThemes.wechat
@@ -578,7 +578,7 @@ export default function App() {
       </div>
 
       <Toast
-        message={copyTarget === 'zhihu' ? '已复制 Markdown，去知乎粘贴即可' : '已复制富文本，去公众号粘贴即可'}
+        message={copyTarget === 'zhihu' ? '已复制，关闭知乎Markdown模式后粘贴' : '已复制富文本，去公众号粘贴即可'}
         visible={toastVisible}
         onDismiss={() => setToastVisible(false)}
       />

@@ -8,23 +8,15 @@ export async function copyRichText(container) {
 }
 
 /**
- * 知乎专用复制 — 直接复制 Markdown 原文（知乎编辑器支持 Markdown 模式）
+ * 知乎专用复制 — 复制干净的语义HTML（无class/无inline style）
+ * 知乎编辑器会保留语义标签（h1-h4, strong, em, blockquote, ul, ol, a, code, pre, img, table等）
+ * 并自动套用知乎自己的样式
+ * 注意：需要在知乎的富文本模式（非Markdown模式）下粘贴
  */
-export async function copyForZhihu(container, markdownText) {
-  try {
-    await navigator.clipboard.writeText(markdownText)
-    return true
-  } catch {
-    // 降级
-    const textarea = document.createElement('textarea')
-    textarea.value = markdownText
-    textarea.style.cssText = 'position:fixed;left:-9999px'
-    document.body.appendChild(textarea)
-    textarea.select()
-    const ok = document.execCommand('copy')
-    document.body.removeChild(textarea)
-    return ok
-  }
+export async function copyForZhihu(container) {
+  const clone = container.cloneNode(true)
+  cleanForZhihu(clone)
+  return writeToClipboard(clone.outerHTML, container)
 }
 
 async function writeToClipboard(html, fallbackContainer) {
@@ -95,12 +87,16 @@ function inlineComputedStyles(source, target, aggressive = false) {
  * 清理知乎不兼容的元素/属性
  */
 function cleanForZhihu(root) {
-  // 移除所有 class（知乎会剥掉）
   root.querySelectorAll('*').forEach((el) => {
+    // 移除所有 class 和 style（知乎用自己的样式）
     el.removeAttribute('class')
+    el.removeAttribute('style')
+    // 移除 data-* 属性
+    Array.from(el.attributes).forEach((attr) => {
+      if (attr.name.startsWith('data-')) el.removeAttribute(attr.name)
+    })
   })
 
-  // 图片确保有 src，移除 srcset 等知乎不支持的属性
   root.querySelectorAll('img').forEach((img) => {
     img.removeAttribute('srcset')
     img.removeAttribute('loading')
