@@ -131,27 +131,28 @@ export const builtInThemes = {
     id: 'github',
     name: 'GitHub',
     css: `
-      .preview-body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.6; color: #24292e; background: #fff; padding: 24px; }
-      .preview-body h1, .preview-body h2 { border-bottom: 1px solid #eaecef; padding-bottom: 0.3em; }
-      .preview-body h1 { font-size: 2em; margin: 0.67em 0; }
-      .preview-body h2 { font-size: 1.5em; margin: 1em 0 0.5em; }
-      .preview-body h3 { font-size: 1.25em; margin: 1em 0 0.5em; }
-      .preview-body h4, .preview-body h5, .preview-body h6 { margin: 1em 0 0.5em; }
+      .preview-body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.75; color: #1f2328; background: #fff; padding: 24px; }
+      .preview-body h1 { font-size: 2em; font-weight: 600; margin: 0 0 16px; padding-bottom: 0.3em; border-bottom: 1px solid #d1d9e0; }
+      .preview-body h2 { font-size: 1.5em; font-weight: 600; margin: 24px 0 16px; padding-bottom: 0.3em; border-bottom: 1px solid #d1d9e0; }
+      .preview-body h3 { font-size: 1.25em; font-weight: 600; margin: 24px 0 16px; }
+      .preview-body h4, .preview-body h5, .preview-body h6 { font-weight: 600; margin: 24px 0 16px; }
       .preview-body p { margin: 0 0 16px; }
-      .preview-body a { color: #0366d6; text-decoration: none; }
+      .preview-body a { color: #0969da; text-decoration: none; }
       .preview-body a:hover { text-decoration: underline; }
-      .preview-body code { font-family: "SFMono-Regular", Consolas, monospace; font-size: 85%; background: rgba(27,31,35,0.05); padding: 0.2em 0.4em; border-radius: 3px; }
-      .preview-body pre { background: #f6f8fa; border-radius: 6px; padding: 16px; overflow: auto; margin: 0 0 16px; }
-      .preview-body pre code { background: none; padding: 0; font-size: 100%; }
-      .preview-body blockquote { margin: 0 0 16px; padding: 0 1em; color: #6a737d; border-left: 4px solid #dfe2e5; }
+      .preview-body strong { font-weight: 600; color: #1f2328; }
+      .preview-body code { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace; font-size: 85%; background: rgba(175,184,193,0.2); padding: 0.2em 0.4em; border-radius: 6px; }
+      .preview-body pre { background: #161b22; border-radius: 6px; padding: 16px; overflow: auto; margin: 0 0 16px; }
+      .preview-body pre code { background: none; padding: 0; font-size: 85%; color: #e6edf3; }
+      .preview-body blockquote { margin: 0 0 16px; padding: 0 1em; color: #656d76; border-left: 3px solid #d1d9e0; }
       .preview-body ul, .preview-body ol { padding-left: 2em; margin: 0 0 16px; }
       .preview-body li { margin: 4px 0; }
+      .preview-body li + li { margin-top: 4px; }
       .preview-body table { border-collapse: collapse; width: 100%; margin: 0 0 16px; }
-      .preview-body th, .preview-body td { border: 1px solid #dfe2e5; padding: 6px 13px; }
+      .preview-body th, .preview-body td { border: 1px solid #d1d9e0; padding: 6px 13px; }
       .preview-body th { background: #f6f8fa; font-weight: 600; }
       .preview-body tr:nth-child(even) { background: #f6f8fa; }
-      .preview-body img { max-width: 100%; }
-      .preview-body hr { border: none; border-top: 1px solid #eaecef; margin: 24px 0; }
+      .preview-body img { max-width: 100%; border-radius: 6px; }
+      .preview-body hr { border: none; height: 4px; background: #d1d9e0; border-radius: 2px; margin: 24px 0; }
     `,
   },
   wechat: buildWechatTheme({ id: 'wechat', name: '微信风格' }),
