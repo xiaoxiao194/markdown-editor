@@ -39,6 +39,11 @@ body {
   background: #3b82f6;
 }
 
+/* 预览区列表基础样式 — 确保所有主题都有圆点/数字 */
+.preview-body ul { list-style-type: disc; }
+.preview-body ol { list-style-type: decimal; }
+.preview-body ul, .preview-body ol { padding-left: 1.5em; }
+
 /* 编辑器等宽字体 */
 .editor-textarea {
   font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
