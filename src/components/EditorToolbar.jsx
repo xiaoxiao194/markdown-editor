@@ -141,7 +141,7 @@ export default function EditorToolbar({ textareaRef, onChange }) {
               type="button"
               title={btn.title}
               onClick={() => handleClick(btn.type)}
-              className="w-7 h-7 flex items-center justify-center rounded text-[#656d76] hover:text-[#1f2328] hover:bg-[#e1e4e8] transition-colors duration-100"
+              className="w-8 h-8 flex items-center justify-center rounded-md text-[#656d76] hover:text-[#1f2328] hover:bg-[#e1e4e8] transition-colors duration-100"
             >
               {btn.icon ? icons[btn.icon] : <span className={`text-xs ${btn.style || ''}`}>{btn.label}</span>}
             </button>

@@ -481,7 +481,7 @@ export default function App() {
   return (
     <div className="h-screen bg-[#f0f2f5] flex flex-col overflow-hidden">
       {/* 第一层：顶部导航栏 */}
-      <nav className="h-12 bg-white/80 backdrop-blur-xl border-b border-black/[0.06] shadow-[0_1px_3px_rgba(0,0,0,0.04)] flex items-center px-3 md:px-6 flex-shrink-0 sticky top-0 z-50">
+      <nav className="h-14 bg-white/80 backdrop-blur-xl border-b border-black/[0.06] shadow-[0_1px_3px_rgba(0,0,0,0.04)] flex items-center px-4 md:px-6 flex-shrink-0 sticky top-0 z-50">
         {/* Logo */}
         <div className="flex items-center gap-2 mr-4">
           <div className="w-7 h-7 rounded-lg bg-[#3b82f6]/10 border border-[#3b82f6]/30 flex items-center justify-center text-[#3b82f6]">
@@ -494,21 +494,21 @@ export default function App() {
               <line x1="15" y1="13" x2="15" y2="17"/>
             </svg>
           </div>
-          <span className="text-sm font-bold text-[#1f2328] tracking-tight">MarkCopy</span>
+          <span className="text-base font-bold text-[#1f2328] tracking-tight">MarkCopy</span>
         </div>
 
         {/* 工具栏 + 编辑器信息 */}
         <EditorToolbar textareaRef={textareaRef} onChange={setMarkdown} />
         <div className="w-px h-4 bg-[#d0d7de] mx-1.5 flex-shrink-0" />
-        <span className="text-xs text-[#656d76] font-medium flex-shrink-0">{meta.wordCount} 字</span>
-        <div className="flex items-center gap-0.5 ml-1.5 flex-shrink-0">
-          <label className="cursor-pointer px-2 py-1 rounded-full text-[#656d76] hover:text-[#1f2328] hover:bg-black/[0.04] transition-colors duration-150 text-xs font-medium flex items-center gap-1">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <span className="text-[13px] text-[#656d76] font-medium flex-shrink-0">{meta.wordCount} 字</span>
+        <div className="flex items-center gap-1 ml-2 flex-shrink-0">
+          <label className="cursor-pointer px-2.5 py-1.5 rounded-lg text-[#656d76] hover:text-[#1f2328] hover:bg-black/[0.05] transition-colors duration-150 text-[13px] font-medium flex items-center gap-1.5">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
             上传
             <input type="file" accept=".md" className="hidden" onChange={handleFileInput} />
           </label>
-          <button onClick={handleExportMd} className="px-2 py-1 rounded-full text-[#656d76] hover:text-[#1f2328] hover:bg-black/[0.04] transition-colors duration-150 text-xs font-medium flex items-center gap-1">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <button onClick={handleExportMd} className="px-2.5 py-1.5 rounded-lg text-[#656d76] hover:text-[#1f2328] hover:bg-black/[0.05] transition-colors duration-150 text-[13px] font-medium flex items-center gap-1.5">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             导出
           </button>
         </div>
@@ -523,7 +523,7 @@ export default function App() {
           />
           <button
             onClick={handleCopy}
-            className="ml-2 flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 select-none bg-[#1f2328] text-white hover:bg-[#000] hover:shadow-lg hover:shadow-black/15 active:scale-95"
+            className="ml-2 flex items-center gap-1.5 px-5 py-2 rounded-full text-[13px] font-semibold transition-all duration-200 select-none bg-[#1f2328] text-white hover:bg-[#000] hover:shadow-lg hover:shadow-black/15 active:scale-95"
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
             复制到公众号
