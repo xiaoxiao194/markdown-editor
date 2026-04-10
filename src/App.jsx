@@ -6,6 +6,8 @@ import ThemeLab from './components/ThemeLab.jsx'
 import Toast from './components/Toast.jsx'
 import { parseMarkdown } from './utils/markdown.js'
 import { copyRichText, copyForZhihu } from './utils/clipboard.js'
+import { uploadImage, fileToBase64 } from './utils/uploadImage.js'
+import { printPreview } from './utils/exportPdf.js'
 import { builtInThemes, createCustomWechatTheme, DEFAULT_WECHAT_TOKENS } from './themes/index.js'
 
 const DEFAULT_MD = `# MarkCopy 使用指南 — 写出排版精美的公众号文章
@@ -62,6 +64,8 @@ const DEFAULT_MD = `# MarkCopy 使用指南 — 写出排版精美的公众号�
 下面是实际渲染效果：
 
 ![风景示例](https://picsum.photos/id/10/800/400)
+
+![PayForChat](https://img.payforchat.com/markcopy/2026/04/97da1d5f575db1b5de5957010920c557.png)
 
 ---
 
@@ -299,10 +303,9 @@ export default function App() {
   const [customThemes, setCustomThemes] = useState(() => loadStoredThemes())
   const [themeLab, setThemeLab] = useState(createEmptyLabState)
   const [toastVisible, setToastVisible] = useState(false)
+  const [toastMessage, setToastMessage] = useState('')
 
   const textareaRef = useRef(null)
-  const imageStoreRef = useRef(new Map()) // img-1 → base64
-  const imageCountRef = useRef(0)
 
   // Scroll sync
   const editorScrollRef = useRef(null)
@@ -331,12 +334,45 @@ export default function App() {
     requestAnimationFrame(() => { scrollSyncSource.current = null })
   }, [])
 
-  const handleInsertImage = useCallback((base64, name) => {
-    imageCountRef.current += 1
-    const id = `img-${imageCountRef.current}`
-    imageStoreRef.current.set(id, base64)
-    return `![${name}](${id})`
+  const showToast = useCallback((msg) => {
+    setToastMessage(msg)
+    setToastVisible(true)
   }, [])
+
+  const handleUploadStatus = useCallback((status, errorMsg) => {
+    if (status === 'success') showToast('图片上传成功')
+    if (status === 'error') showToast(errorMsg || '图片上传失败')
+  }, [showToast])
+
+  const handleToolbarImageUpload = useCallback((file) => {
+    // Trigger the same upload logic used by Editor paste/drop
+    // We need to programmatically insert placeholder and upload
+    const ta = textareaRef.current
+    if (!ta) return
+
+    const id = Date.now()
+    const placeholder = `![上传中...(${id})]()`
+
+    ta.focus()
+    document.execCommand('insertText', false, `\n${placeholder}\n`)
+
+    uploadImage(file).then((url) => {
+      const name = file.name.replace(/\.[^.]+$/, '') || 'image'
+      setMarkdown((prev) => prev.replace(placeholder, `![${name}](${url})`))
+      showToast('图片上传成功')
+    }).catch(async (err) => {
+      // Fallback to base64 so image is not lost
+      try {
+        const base64 = await fileToBase64(file)
+        const name = file.name.replace(/\.[^.]+$/, '') || 'image'
+        setMarkdown((prev) => prev.replace(placeholder, `![${name}](${base64})`))
+        showToast('上传失败，已使用本地图片')
+      } catch {
+        setMarkdown((prev) => prev.replace(`\n${placeholder}\n`, ''))
+        showToast(err.message || '图片上传失败')
+      }
+    })
+  }, [showToast])
 
   const meta = useMemo(() => {
     const plain = markdown
@@ -353,7 +389,7 @@ export default function App() {
     return { title, wordCount, readMinutes, publishDate }
   }, [markdown, publishDate])
 
-  const html = parseMarkdown(markdown, imageStoreRef.current)
+  const html = parseMarkdown(markdown)
 
   const customThemeMap = useMemo(() => {
     const merged = {}
@@ -406,6 +442,7 @@ export default function App() {
   const [copyTarget, setCopyTarget] = useState('wechat') // 'wechat' | 'zhihu'
   const [showCopyMenu, setShowCopyMenu] = useState(false)
   const copyMenuRef = useRef(null)
+  const [previewDevice, setPreviewDevice] = useState('desktop')
 
   useEffect(() => {
     if (!showCopyMenu) return
@@ -420,11 +457,11 @@ export default function App() {
     const container = previewRef.current?.querySelector('.preview-body')
     if (!container) return false
     const ok = copyTarget === 'zhihu'
-      ? await copyForZhihu(container, () => parseMarkdown(markdown, imageStoreRef.current))
+      ? await copyForZhihu(container, () => parseMarkdown(markdown))
       : await copyRichText(container)
-    if (ok) setToastVisible(true)
+    if (ok) showToast(copyTarget === 'zhihu' ? '已复制，关闭知乎Markdown模式后粘贴' : '已复制富文本，去公众号粘贴即可')
     return ok
-  }, [copyTarget, markdown])
+  }, [copyTarget, markdown, showToast])
 
   const handleOpenThemeLab = () => {
     const base = themeOptions[theme] ?? builtInThemes.wechat
@@ -492,6 +529,10 @@ export default function App() {
     URL.revokeObjectURL(url)
   }, [markdown])
 
+  const handleExportPdf = useCallback(() => {
+    printPreview({ html, themeCss: previewThemeConfig?.css })
+  }, [html, previewThemeConfig])
+
 
   return (
     <div className="h-screen bg-[#f0f2f5] flex flex-col overflow-hidden">
@@ -513,7 +554,7 @@ export default function App() {
         </div>
 
         {/* 工具栏 + 编辑器信息 */}
-        <EditorToolbar textareaRef={textareaRef} onChange={setMarkdown} />
+        <EditorToolbar textareaRef={textareaRef} onChange={setMarkdown} onImageUpload={handleToolbarImageUpload} />
         <div className="w-px h-4 bg-[#d0d7de] mx-1.5 flex-shrink-0" />
         <span className="text-[13px] text-[#656d76] font-medium flex-shrink-0">{meta.wordCount} 字</span>
         <div className="flex items-center gap-1 ml-2 flex-shrink-0">
@@ -525,6 +566,10 @@ export default function App() {
           <button onClick={handleExportMd} className="px-2.5 py-1.5 rounded-lg text-[#656d76] hover:text-[#1f2328] hover:bg-black/[0.05] transition-colors duration-150 text-[13px] font-medium flex items-center gap-1.5">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             导出
+          </button>
+          <button onClick={handleExportPdf} title="导出 PDF" className="px-2.5 py-1.5 rounded-lg text-[#656d76] hover:text-[#1f2328] hover:bg-black/[0.05] transition-colors duration-150 text-[13px] font-medium flex items-center gap-1.5">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            PDF
           </button>
         </div>
 
@@ -563,7 +608,7 @@ export default function App() {
       <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
         {/* 编辑器面板 */}
         <div className="flex flex-col flex-1 md:basis-[45%] min-h-[300px] border-r border-black/[0.06]">
-          <Editor value={markdown} onChange={setMarkdown} onInsertImage={handleInsertImage} onScroll={handleEditorScroll} editorRef={editorScrollRef} textareaRef={textareaRef} />
+          <Editor value={markdown} onChange={setMarkdown} onScroll={handleEditorScroll} editorRef={editorScrollRef} textareaRef={textareaRef} onUploadStatus={handleUploadStatus} />
         </div>
         {/* 预览面板 */}
         <div className="flex flex-col flex-1 md:basis-[55%] min-h-[300px] bg-white" ref={previewRef}>
@@ -573,12 +618,15 @@ export default function App() {
             meta={meta}
             onScroll={handlePreviewScroll}
             scrollRef={previewScrollRef}
+            device={previewDevice}
+            onDeviceChange={setPreviewDevice}
+            onCopy={handleCopy}
           />
         </div>
       </div>
 
       <Toast
-        message={copyTarget === 'zhihu' ? '已复制，关闭知乎Markdown模式后粘贴' : '已复制富文本，去公众号粘贴即可'}
+        message={toastMessage}
         visible={toastVisible}
         onDismiss={() => setToastVisible(false)}
       />

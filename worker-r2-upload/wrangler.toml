@@ -1,0 +1,12 @@
+name = "r2-upload-worker"
+main = "src/worker.js"
+compatibility_date = "2025-04-01"
+
+[vars]
+R2_ENDPOINT = "https://3d1d2369172d60e7c9d255a039229695.r2.cloudflarestorage.com"
+R2_BUCKET = "ipengtao-blog"
+R2_URL_PREFIX = "https://blog.ipengtao.com"
+
+# 以下变量需要在 Cloudflare Dashboard → Worker Settings → Variables 中配置为加密变量：
+# R2_ACCESS_KEY_ID = "your-access-key-id"
+# R2_SECRET_ACCESS_KEY = "your-secret-access-key"

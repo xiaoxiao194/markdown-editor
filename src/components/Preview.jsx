@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import DevicePreview from './DevicePreview.jsx'
 
 const POPULAR_THEMES = ['wechat', 'hongfei', 'github', 'literary']
 
@@ -93,7 +94,7 @@ function ThemeBar({ theme, themeEntries = [], onThemeChange, onOpenThemeLab }) {
   )
 }
 
-export default function Preview({ html, themeConfig, meta = {}, onScroll, scrollRef }) {
+export default function Preview({ html, themeConfig, meta = {}, onScroll, scrollRef, device, onDeviceChange, onCopy }) {
   const containerRef = useRef(null)
   const styleRef = useRef(null)
   const scrollableRef = useRef(null)
@@ -111,42 +112,55 @@ export default function Preview({ html, themeConfig, meta = {}, onScroll, scroll
   }, [scrollRef])
 
   const isWechatTheme = themeConfig?.meta?.base === 'wechat'
+  const isMobile = device === 'phone' || device === 'ipad'
+
+  const previewContent = isWechatTheme ? (
+    <div ref={isMobile ? undefined : scrollableRef} onScroll={isMobile ? undefined : onScroll} className={isMobile ? 'h-full overflow-auto' : 'h-full overflow-auto px-6 py-6 bg-[#f0f2f5]'}>
+      {isMobile ? (
+        <div className="px-4 py-4 bg-white">
+          <div
+            ref={containerRef}
+            className="preview-body"
+            dangerouslySetInnerHTML={{ __html: html }}
+          />
+        </div>
+      ) : (
+        <div className="w-full max-w-[760px] mx-auto flex flex-col gap-6 pb-8">
+          <div className="relative rounded-2xl bg-white border border-black/[0.06] shadow-[0_2px_24px_rgba(0,0,0,0.06)] overflow-hidden">
+            <div className="px-8 md:px-12 pt-10 pb-6 border-b border-black/[0.04] flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-500">
+              <span className="inline-flex items-center gap-2 font-semibold text-[#07c160]">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#07c160]" />
+                公众号排版预览
+              </span>
+              <span>预计 {meta?.readMinutes ?? 1} 分钟</span>
+              <span>{meta?.wordCount ?? 0} 字</span>
+            </div>
+            <div className="px-6 md:px-10 py-10 bg-white">
+              <div
+                ref={containerRef}
+                className="preview-body"
+                dangerouslySetInnerHTML={{ __html: html }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  ) : (
+    <div ref={isMobile ? undefined : scrollableRef} onScroll={isMobile ? undefined : onScroll} className="h-full overflow-auto">
+      <div
+        ref={containerRef}
+        className="preview-body"
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
+    </div>
+  )
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-hidden">
-        {isWechatTheme ? (
-          <div ref={scrollableRef} onScroll={onScroll} className="h-full overflow-auto px-6 py-6 bg-[#f0f2f5]">
-            <div className="w-full max-w-[760px] mx-auto flex flex-col gap-6 pb-8">
-              <div className="relative rounded-2xl bg-white border border-black/[0.06] shadow-[0_2px_24px_rgba(0,0,0,0.06)] overflow-hidden">
-                <div className="px-8 md:px-12 pt-10 pb-6 border-b border-black/[0.04] flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-500">
-                  <span className="inline-flex items-center gap-2 font-semibold text-[#07c160]">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#07c160]" />
-                    公众号排版预览
-                  </span>
-                  <span>预计 {meta?.readMinutes ?? 1} 分钟</span>
-                  <span>{meta?.wordCount ?? 0} 字</span>
-                </div>
-                <div className="px-6 md:px-10 py-10 bg-white">
-                  <div
-                    ref={containerRef}
-                    className="preview-body"
-                    dangerouslySetInnerHTML={{ __html: html }}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div ref={scrollableRef} onScroll={onScroll} className="h-full overflow-auto">
-            <div
-              ref={containerRef}
-              className="preview-body"
-              dangerouslySetInnerHTML={{ __html: html }}
-            />
-          </div>
-        )}
-      </div>
+      <DevicePreview device={device} onDeviceChange={onDeviceChange} onCopy={onCopy}>
+        {previewContent}
+      </DevicePreview>
     </div>
   )
 }

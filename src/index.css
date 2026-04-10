@@ -72,3 +72,12 @@ body {
 .animate-slide-in-right {
   animation: slide-in-right 0.25s ease-out;
 }
+
+/* Hide scrollbar inside phone mockup */
+.phone-scroll-hide::-webkit-scrollbar {
+  display: none;
+}
+.phone-scroll-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

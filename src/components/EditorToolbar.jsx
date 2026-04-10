@@ -1,3 +1,5 @@
+import { useRef } from 'react'
+
 const insertions = {
   bold:      { before: '**', after: '**', placeholder: '粗体文本' },
   italic:    { before: '*', after: '*', placeholder: '斜体文本' },
@@ -125,9 +127,23 @@ export function insertMarkdown(textarea, type, onChange) {
   }
 }
 
-export default function EditorToolbar({ textareaRef, onChange }) {
+export default function EditorToolbar({ textareaRef, onChange, onImageUpload }) {
+  const fileInputRef = useRef(null)
+
   const handleClick = (type) => {
+    if (type === 'image') {
+      fileInputRef.current?.click()
+      return
+    }
     insertMarkdown(textareaRef.current, type, onChange)
+  }
+
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files)
+    files.forEach((f) => {
+      if (f.type.startsWith('image/')) onImageUpload?.(f)
+    })
+    e.target.value = ''
   }
 
   return (
@@ -148,6 +164,14 @@ export default function EditorToolbar({ textareaRef, onChange }) {
           ))}
         </div>
       ))}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={handleFileChange}
+      />
     </div>
   )
 }
