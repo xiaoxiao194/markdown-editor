@@ -81,7 +81,7 @@ const buildWechatCss = (rawTokens = DEFAULT_WECHAT_TOKENS) => {
       .preview-body h1 { font-size: ${h1}em; font-weight: 800; margin: 0 0 0.8em; text-align: center; color: ${palette.heading}; letter-spacing: 0.02em; line-height: 1.35; }
       .preview-body h2 { font-size: ${h2}em; font-weight: 700; margin: 1.6em auto 0.8em; color: ${palette.heading}; padding-left: 14px; border-left: 4px solid ${palette.primary}; background: ${gradientBg}; border-radius: 0 ${radius / 2}px ${radius / 2}px 0; }
       .preview-body h3 { font-size: ${h3}em; font-weight: 600; margin: 1.25em auto 0.6em; color: ${palette.heading}; position: relative; padding-left: 16px; }
-      .preview-body h3::before { content: \"\"; width: 8px; height: 8px; border-radius: 50%; background: ${palette.primary}; position: absolute; left: 0; top: 0.5em; box-shadow: ${dotGlow}; }
+      .preview-body h3::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: ${palette.primary}; position: absolute; left: 0; top: 0.5em; box-shadow: ${dotGlow}; }
       .preview-body p { margin: 0 auto 1.15em; text-align: justify; color: ${palette.body}; line-height: ${lineHeight}; }
       .preview-body strong { color: ${palette.strong}; }
       .preview-body em { color: ${hexToRgba(palette.primary, 0.75)}; font-style: normal; border-bottom: 1px dashed ${hexToRgba(palette.primary, 0.4)}; }
@@ -94,7 +94,7 @@ const buildWechatCss = (rawTokens = DEFAULT_WECHAT_TOKENS) => {
       .preview-body ul, .preview-body ol { margin: 0 auto 1.1em; padding-left: 0; }
       .preview-body ul { list-style: none; }
       .preview-body ul li { margin: 0.6em 0; padding-left: 1.4em; position: relative; }
-      .preview-body ul li::before { content: \"\"; width: 8px; height: 8px; border-radius: 50%; background: ${palette.primary}; position: absolute; left: 0; top: 0.6em; box-shadow: ${dotGlow}; }
+      .preview-body ul li::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: ${palette.primary}; position: absolute; left: 0; top: 0.6em; box-shadow: ${dotGlow}; }
       .preview-body ol { counter-reset: wechat-ol; list-style: none; }
       .preview-body ol li { margin: 0.65em 0; padding-left: 1.4em; position: relative; counter-increment: wechat-ol; }
       .preview-body ol li::before { content: counter(wechat-ol) "."; position: absolute; left: 0; top: 0; color: ${palette.primary}; font-weight: 600; }
@@ -472,6 +472,3 @@ export const builtInThemes = {
     `,
   },
 }
-
-export const themes = builtInThemes
-export const themeList = Object.keys(builtInThemes)

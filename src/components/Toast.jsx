@@ -3,9 +3,10 @@ import { useEffect } from 'react'
 export default function Toast({ message, visible, onDismiss }) {
   useEffect(() => {
     if (!visible) return
+    // message in deps: restart the timer when a new toast fires while one is visible
     const timer = setTimeout(onDismiss, 2500)
     return () => clearTimeout(timer)
-  }, [visible, onDismiss])
+  }, [visible, message, onDismiss])
 
   return (
     <div

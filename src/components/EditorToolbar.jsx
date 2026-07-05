@@ -93,7 +93,7 @@ const icons = {
   ),
 }
 
-export function insertMarkdown(textarea, type, onChange) {
+function insertMarkdown(textarea, type) {
   const config = insertions[type]
   if (!config || !textarea) return
 
@@ -127,7 +127,7 @@ export function insertMarkdown(textarea, type, onChange) {
   }
 }
 
-export default function EditorToolbar({ textareaRef, onChange, onImageUpload }) {
+export default function EditorToolbar({ textareaRef, onImageUpload }) {
   const fileInputRef = useRef(null)
 
   const handleClick = (type) => {
@@ -135,7 +135,7 @@ export default function EditorToolbar({ textareaRef, onChange, onImageUpload }) 
       fileInputRef.current?.click()
       return
     }
-    insertMarkdown(textareaRef.current, type, onChange)
+    insertMarkdown(textareaRef.current, type)
   }
 
   const handleFileChange = (e) => {

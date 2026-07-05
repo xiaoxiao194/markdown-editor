@@ -94,7 +94,7 @@ function ThemeBar({ theme, themeEntries = [], onThemeChange, onOpenThemeLab }) {
   )
 }
 
-export default function Preview({ html, themeConfig, meta = {}, onScroll, scrollRef, device, onDeviceChange, onCopy }) {
+export default function Preview({ html, themeConfig, meta = {}, onScroll, scrollRef, device, onDeviceChange, onCopy, copying }) {
   const containerRef = useRef(null)
   const styleRef = useRef(null)
   const scrollableRef = useRef(null)
@@ -108,8 +108,10 @@ export default function Preview({ html, themeConfig, meta = {}, onScroll, scroll
   }, [themeConfig])
 
   useEffect(() => {
+    // Re-sync after device switches: mobile modes unmount the scrollable div,
+    // so the outer scrollRef must be refreshed when returning to desktop.
     if (scrollRef) scrollRef.current = scrollableRef.current
-  }, [scrollRef])
+  }, [scrollRef, device, themeConfig])
 
   const isWechatTheme = themeConfig?.meta?.base === 'wechat'
   const isMobile = device === 'phone' || device === 'ipad'
@@ -158,7 +160,7 @@ export default function Preview({ html, themeConfig, meta = {}, onScroll, scroll
 
   return (
     <div className="flex flex-col h-full">
-      <DevicePreview device={device} onDeviceChange={onDeviceChange} onCopy={onCopy}>
+      <DevicePreview device={device} onDeviceChange={onDeviceChange} onCopy={onCopy} copying={copying}>
         {previewContent}
       </DevicePreview>
     </div>

@@ -20,14 +20,17 @@ async function compressImage(file) {
   ctx.drawImage(bitmap, 0, 0)
   bitmap.close()
 
+  // PNG/WebP may carry an alpha channel — compress to WebP (keeps transparency).
+  // JPEG has no alpha, so re-encoding to JPEG is safe and better supported.
+  const outputType = file.type === 'image/jpeg' ? 'image/jpeg' : 'image/webp'
+
   // Iteratively lower quality until under threshold
   let quality = 0.85
-  const outputType = file.type === 'image/png' ? 'image/png' : 'image/jpeg'
   let blob = await canvas.convertToBlob({ type: outputType, quality })
 
   while (blob.size > COMPRESS_THRESHOLD && quality > 0.3) {
     quality -= 0.1
-    blob = await canvas.convertToBlob({ type: 'image/jpeg', quality })
+    blob = await canvas.convertToBlob({ type: outputType, quality })
   }
 
   // If still too large, scale down
@@ -38,7 +41,7 @@ async function compressImage(file) {
     const smallCanvas = new OffscreenCanvas(newW, newH)
     const sCtx = smallCanvas.getContext('2d')
     sCtx.drawImage(canvas, 0, 0, newW, newH)
-    blob = await smallCanvas.convertToBlob({ type: 'image/jpeg', quality: 0.8 })
+    blob = await smallCanvas.convertToBlob({ type: outputType, quality: 0.8 })
   }
 
   return new File([blob], file.name, { type: blob.type })
@@ -89,4 +92,44 @@ export async function uploadImage(file) {
   }
 
   return data.url
+}
+
+let uploadSeq = 0
+
+/**
+ * Insert a placeholder at the textarea cursor, upload the file, then replace
+ * the placeholder with the real URL (or base64 fallback if upload fails).
+ * Shared by Editor paste/drop and the toolbar image button.
+ *
+ * onStatus(status, message): status is 'uploading' | 'success' | 'error'.
+ */
+export async function uploadAndInsertImage(file, textarea, onChange, onStatus) {
+  if (!textarea) return
+
+  uploadSeq += 1
+  const placeholder = `![上传中...(${uploadSeq})]()`
+
+  // Insert placeholder at cursor (execCommand preserves the undo stack)
+  textarea.focus()
+  document.execCommand('insertText', false, `\n${placeholder}\n`)
+
+  const name = file.name.replace(/\.[^.]+$/, '') || 'image'
+  try {
+    onStatus?.('uploading')
+    const url = await uploadImage(file)
+    onChange((prev) => prev.replace(placeholder, `![${name}](${url})`))
+    onStatus?.('success')
+  } catch (err) {
+    // Fallback to base64 inline so the image is not lost in the editor.
+    // Copy-to-WeChat embeds all images as base64 anyway, so pasting still works;
+    // the downside is a bloated document/draft, hence the re-upload suggestion.
+    try {
+      const base64 = await fileToBase64(file)
+      onChange((prev) => prev.replace(placeholder, `![${name}](${base64})`))
+      onStatus?.('error', '上传失败，图片已内嵌到文档（体积较大，建议网络恢复后删除重传）')
+    } catch {
+      onChange((prev) => prev.replace(`\n${placeholder}\n`, ''))
+      onStatus?.('error', err.message)
+    }
+  }
 }

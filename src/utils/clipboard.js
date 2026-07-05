@@ -1,10 +1,52 @@
 /**
  * 将预览区域的富文本复制到剪贴板（保留内联样式，可粘贴到微信等平台）
+ *
+ * 图片处理：外链图片在复制时取回并转成 base64 内嵌进剪贴板。
+ * 微信编辑器的图片转存由腾讯服务器抓取外链，腾讯机房到 Cloudflare 的链路
+ * 不稳定会导致「图片载入失败」；内嵌后微信直接从剪贴板拿图片数据上传素材库，
+ * 不再依赖任何外部抓取。取回失败的图片保留原外链（不比现状更差）。
  */
 export async function copyRichText(container) {
   const clone = container.cloneNode(true)
   inlineComputedStyles(container, clone)
+  await embedImagesAsDataUrls(clone)
   return writeToClipboard(clone.outerHTML, container)
+}
+
+/**
+ * 将 root 内所有 http(s) 外链 <img> 取回并替换为 base64 data URL。
+ * - data: URL 跳过（已内嵌）
+ * - 单图取回失败时保留原外链，不阻断整体复制
+ */
+async function embedImagesAsDataUrls(root) {
+  const imgs = Array.from(root.querySelectorAll('img[src^="http"]'))
+  await Promise.all(imgs.map(async (img) => {
+    try {
+      const resp = await fetchWithTimeout(img.src, 15000)
+      if (!resp.ok) return
+      const blob = await resp.blob()
+      if (!blob.type.startsWith('image/')) return
+      img.src = await blobToDataUrl(blob)
+    } catch {
+      // CORS 未配置或网络失败：保留外链，由微信尝试转存
+    }
+  }))
+}
+
+function fetchWithTimeout(url, ms) {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), ms)
+  return fetch(url, { signal: controller.signal, mode: 'cors' })
+    .finally(() => clearTimeout(timer))
+}
+
+function blobToDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result)
+    reader.onerror = () => reject(new Error('图片编码失败'))
+    reader.readAsDataURL(blob)
+  })
 }
 
 /**
@@ -13,9 +55,11 @@ export async function copyRichText(container) {
  * 知乎富文本编辑器会自动套用自己的样式
  */
 export async function copyForZhihu(container, renderCleanHtml) {
-  const html = renderCleanHtml()
+  const holder = document.createElement('div')
+  holder.innerHTML = renderCleanHtml()
+  await embedImagesAsDataUrls(holder)
   try {
-    const blob = new Blob([html], { type: 'text/html' })
+    const blob = new Blob([holder.innerHTML], { type: 'text/html' })
     const item = new ClipboardItem({ 'text/html': blob })
     await navigator.clipboard.write([item])
     return true
@@ -86,24 +130,4 @@ function inlineComputedStyles(source, target, aggressive = false) {
   for (let i = 0; i < sourceChildren.length; i++) {
     inlineComputedStyles(sourceChildren[i], targetChildren[i], aggressive)
   }
-}
-
-/**
- * 清理知乎不兼容的元素/属性
- */
-function cleanForZhihu(root) {
-  root.querySelectorAll('*').forEach((el) => {
-    // 移除所有 class 和 style（知乎用自己的样式）
-    el.removeAttribute('class')
-    el.removeAttribute('style')
-    // 移除 data-* 属性
-    Array.from(el.attributes).forEach((attr) => {
-      if (attr.name.startsWith('data-')) el.removeAttribute(attr.name)
-    })
-  })
-
-  root.querySelectorAll('img').forEach((img) => {
-    img.removeAttribute('srcset')
-    img.removeAttribute('loading')
-  })
 }

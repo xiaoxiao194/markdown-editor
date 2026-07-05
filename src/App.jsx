@@ -6,7 +6,8 @@ import ThemeLab from './components/ThemeLab.jsx'
 import Toast from './components/Toast.jsx'
 import { parseMarkdown } from './utils/markdown.js'
 import { copyRichText, copyForZhihu } from './utils/clipboard.js'
-import { uploadImage, fileToBase64 } from './utils/uploadImage.js'
+import { uploadAndInsertImage } from './utils/uploadImage.js'
+import { readTextFile } from './utils/file.js'
 import { printPreview } from './utils/exportPdf.js'
 import { builtInThemes, createCustomWechatTheme, DEFAULT_WECHAT_TOKENS } from './themes/index.js'
 
@@ -233,8 +234,6 @@ Markdown 中可以直接使用 HTML：
 构思大纲 → Markdown 写初稿 → MarkCopy 排版 → 一键复制到公众号 → 发布
 \`\`\`
 
-![工作流](https://picsum.photos/id/180/800/400)
-
 **为什么选择 Markdown + MarkCopy？**
 
 1. **专注内容**：Markdown 语法简洁，写作时不被排版分心
@@ -288,7 +287,8 @@ export default function App() {
   const [markdown, setMarkdown] = useState(() => {
     try {
       const saved = localStorage.getItem(DRAFT_STORAGE_KEY)
-      return saved || DEFAULT_MD
+      // null = never saved; '' = user intentionally cleared — don't resurrect the demo doc
+      return saved !== null ? saved : DEFAULT_MD
     } catch { return DEFAULT_MD }
   })
   const [theme, setTheme] = useState(() => {
@@ -310,27 +310,19 @@ export default function App() {
   const previewScrollRef = useRef(null)
   const scrollSyncSource = useRef(null)
 
-  const handleEditorScroll = useCallback(() => {
-    if (scrollSyncSource.current === 'preview') return
-    scrollSyncSource.current = 'editor'
-    const el = editorScrollRef.current
-    const target = previewScrollRef.current
+  const syncScroll = useCallback((source, fromRef, toRef) => {
+    if (scrollSyncSource.current && scrollSyncSource.current !== source) return
+    scrollSyncSource.current = source
+    const el = fromRef.current
+    const target = toRef.current
     if (!el || !target) return
     const ratio = el.scrollTop / (el.scrollHeight - el.clientHeight || 1)
     target.scrollTop = ratio * (target.scrollHeight - target.clientHeight)
     requestAnimationFrame(() => { scrollSyncSource.current = null })
   }, [])
 
-  const handlePreviewScroll = useCallback(() => {
-    if (scrollSyncSource.current === 'editor') return
-    scrollSyncSource.current = 'preview'
-    const el = previewScrollRef.current
-    const target = editorScrollRef.current
-    if (!el || !target) return
-    const ratio = el.scrollTop / (el.scrollHeight - el.clientHeight || 1)
-    target.scrollTop = ratio * (target.scrollHeight - target.clientHeight)
-    requestAnimationFrame(() => { scrollSyncSource.current = null })
-  }, [])
+  const handleEditorScroll = useCallback(() => syncScroll('editor', editorScrollRef, previewScrollRef), [syncScroll])
+  const handlePreviewScroll = useCallback(() => syncScroll('preview', previewScrollRef, editorScrollRef), [syncScroll])
 
   const showToast = useCallback((msg) => {
     setToastMessage(msg)
@@ -343,34 +335,9 @@ export default function App() {
   }, [showToast])
 
   const handleToolbarImageUpload = useCallback((file) => {
-    // Trigger the same upload logic used by Editor paste/drop
-    // We need to programmatically insert placeholder and upload
-    const ta = textareaRef.current
-    if (!ta) return
-
-    const id = Date.now()
-    const placeholder = `![上传中...(${id})]()`
-
-    ta.focus()
-    document.execCommand('insertText', false, `\n${placeholder}\n`)
-
-    uploadImage(file).then((url) => {
-      const name = file.name.replace(/\.[^.]+$/, '') || 'image'
-      setMarkdown((prev) => prev.replace(placeholder, `![${name}](${url})`))
-      showToast('图片上传成功')
-    }).catch(async (err) => {
-      // Fallback to base64 so image is not lost
-      try {
-        const base64 = await fileToBase64(file)
-        const name = file.name.replace(/\.[^.]+$/, '') || 'image'
-        setMarkdown((prev) => prev.replace(placeholder, `![${name}](${base64})`))
-        showToast('上传失败，已使用本地图片')
-      } catch {
-        setMarkdown((prev) => prev.replace(`\n${placeholder}\n`, ''))
-        showToast(err.message || '图片上传失败')
-      }
-    })
-  }, [showToast])
+    // Same placeholder-then-replace flow as Editor paste/drop
+    uploadAndInsertImage(file, textareaRef.current, setMarkdown, handleUploadStatus)
+  }, [handleUploadStatus])
 
   const meta = useMemo(() => {
     const plain = markdown
@@ -387,46 +354,49 @@ export default function App() {
     return { title, wordCount, readMinutes, publishDate }
   }, [markdown, publishDate])
 
-  const html = parseMarkdown(markdown)
+  const html = useMemo(() => parseMarkdown(markdown), [markdown])
 
-  const customThemeMap = useMemo(() => {
-    const merged = {}
-    for (const item of customThemes) {
-      merged[item.id] = createCustomWechatTheme(item)
-    }
-    return merged
-  }, [customThemes])
-
-  const builtInEntries = useMemo(() => Object.entries(builtInThemes), [])
-  const customEntries = useMemo(() => Object.entries(customThemeMap), [customThemeMap])
-  const themeEntries = useMemo(() => [...builtInEntries, ...customEntries], [builtInEntries, customEntries])
+  const themeEntries = useMemo(() => [
+    ...Object.entries(builtInThemes),
+    ...customThemes.map((item) => [item.id, createCustomWechatTheme(item)]),
+  ], [customThemes])
   const themeOptions = useMemo(() => Object.fromEntries(themeEntries), [themeEntries])
 
-  useEffect(() => {
-    if (!themeOptions[theme]) {
-      setTheme('wechat')
-    }
-  }, [themeOptions, theme])
+  // Fall back to 'wechat' when the stored key points to a deleted custom theme
+  const activeThemeKey = themeOptions[theme] ? theme : 'wechat'
 
   useEffect(() => {
     if (typeof window === 'undefined') return
     window.localStorage.setItem(CUSTOM_THEME_STORAGE_KEY, JSON.stringify(customThemes))
   }, [customThemes])
 
-  // Auto-save draft
+  // Auto-save draft (debounced), with a flush on tab hide/close so the last
+  // 3 seconds of typing are not lost
   useEffect(() => {
-    const timer = setTimeout(() => {
-      try { localStorage.setItem(DRAFT_STORAGE_KEY, markdown) } catch {}
-    }, 3000)
-    return () => clearTimeout(timer)
-  }, [markdown])
+    const save = () => {
+      try {
+        localStorage.setItem(DRAFT_STORAGE_KEY, markdown)
+      } catch {
+        showToast('草稿保存失败：本地存储空间不足')
+      }
+    }
+    const timer = setTimeout(save, 3000)
+    const flush = () => { if (document.visibilityState === 'hidden') save() }
+    document.addEventListener('visibilitychange', flush)
+    window.addEventListener('pagehide', save)
+    return () => {
+      clearTimeout(timer)
+      document.removeEventListener('visibilitychange', flush)
+      window.removeEventListener('pagehide', save)
+    }
+  }, [markdown, showToast])
 
   // Save selected theme
   useEffect(() => {
-    try { localStorage.setItem(THEME_STORAGE_KEY, theme) } catch {}
-  }, [theme])
+    try { localStorage.setItem(THEME_STORAGE_KEY, activeThemeKey) } catch { /* storage unavailable */ }
+  }, [activeThemeKey])
 
-  const activeThemeConfig = themeOptions[theme] ?? builtInThemes.wechat
+  const activeThemeConfig = themeOptions[activeThemeKey] ?? builtInThemes.wechat
   const labPreviewTheme = useMemo(() => {
     if (!themeLab.open) return null
     return createCustomWechatTheme({
@@ -439,6 +409,7 @@ export default function App() {
 
   const [copyTarget, setCopyTarget] = useState('wechat') // 'wechat' | 'zhihu'
   const [showCopyMenu, setShowCopyMenu] = useState(false)
+  const [copying, setCopying] = useState(false)
   const copyMenuRef = useRef(null)
   const [previewDevice, setPreviewDevice] = useState('desktop')
 
@@ -452,17 +423,28 @@ export default function App() {
   }, [showCopyMenu])
 
   const handleCopy = useCallback(async () => {
+    if (copying) return false
     const container = previewRef.current?.querySelector('.preview-body')
     if (!container) return false
-    const ok = copyTarget === 'zhihu'
-      ? await copyForZhihu(container, () => parseMarkdown(markdown))
-      : await copyRichText(container)
-    if (ok) showToast(copyTarget === 'zhihu' ? '已复制，关闭知乎Markdown模式后粘贴' : '已复制富文本，去公众号粘贴即可')
-    return ok
-  }, [copyTarget, markdown, showToast])
+    setCopying(true)
+    try {
+      // 复制时会取回外链图片并内嵌，多图长文可能需要数秒
+      const ok = copyTarget === 'zhihu'
+        ? await copyForZhihu(container, () => parseMarkdown(markdown))
+        : await copyRichText(container)
+      if (ok) {
+        showToast(copyTarget === 'zhihu' ? '已复制，关闭知乎Markdown模式后粘贴' : '已复制富文本，去公众号粘贴即可')
+      } else {
+        showToast('复制失败，请重试')
+      }
+      return ok
+    } finally {
+      setCopying(false)
+    }
+  }, [copying, copyTarget, markdown, showToast])
 
   const handleOpenThemeLab = () => {
-    const base = themeOptions[theme] ?? builtInThemes.wechat
+    const base = themeOptions[activeThemeKey] ?? builtInThemes.wechat
     const baseTokens = base?.tokens ? cloneTokens(base.tokens) : cloneTokens(DEFAULT_WECHAT_TOKENS)
     setThemeLab({
       open: true,
@@ -509,11 +491,7 @@ export default function App() {
 
   const handleFileInput = (e) => {
     const file = e.target.files[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = (ev) => setMarkdown(ev.target.result)
-      reader.readAsText(file)
-    }
+    if (file) readTextFile(file, setMarkdown)
     e.target.value = ''
   }
 
@@ -552,7 +530,7 @@ export default function App() {
         </div>
 
         {/* 工具栏 + 编辑器信息 */}
-        <EditorToolbar textareaRef={textareaRef} onChange={setMarkdown} onImageUpload={handleToolbarImageUpload} />
+        <EditorToolbar textareaRef={textareaRef} onImageUpload={handleToolbarImageUpload} />
         <div className="w-px h-4 bg-[#d0d7de] mx-1.5 flex-shrink-0" />
         <span className="text-[13px] text-[#656d76] font-medium flex-shrink-0">{meta.wordCount} 字</span>
         <div className="flex items-center gap-1 ml-2 flex-shrink-0">
@@ -574,7 +552,7 @@ export default function App() {
         {/* 主题选择 + 复制 */}
         <div className="ml-auto flex items-center gap-1">
           <Preview.ThemeBar
-            theme={theme}
+            theme={activeThemeKey}
             themeEntries={themeEntries}
             onThemeChange={setTheme}
             onOpenThemeLab={handleOpenThemeLab}
@@ -582,10 +560,15 @@ export default function App() {
           <div className="ml-2 relative" ref={copyMenuRef}>
             <button
               onClick={handleCopy}
-              className="flex items-center gap-1.5 px-5 py-2 rounded-full text-[13px] font-semibold transition-all duration-200 select-none bg-[#1f2328] text-white hover:bg-[#000] hover:shadow-lg hover:shadow-black/15 active:scale-95"
+              disabled={copying}
+              className="flex items-center gap-1.5 px-5 py-2 rounded-full text-[13px] font-semibold transition-all duration-200 select-none bg-[#1f2328] text-white hover:bg-[#000] hover:shadow-lg hover:shadow-black/15 active:scale-95 disabled:opacity-60 disabled:cursor-wait"
             >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-              {copyTarget === 'zhihu' ? '复制到知乎' : '复制到公众号'}
+              {copying ? (
+                <span className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+              ) : (
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              )}
+              {copying ? '复制中...' : copyTarget === 'zhihu' ? '复制到知乎' : '复制到公众号'}
               <svg onClick={(e) => { e.stopPropagation(); setShowCopyMenu(v => !v) }} width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="ml-0.5 opacity-60 hover:opacity-100 cursor-pointer"><polyline points="6 9 12 15 18 9"/></svg>
             </button>
             {showCopyMenu && (
@@ -619,6 +602,7 @@ export default function App() {
             device={previewDevice}
             onDeviceChange={setPreviewDevice}
             onCopy={handleCopy}
+            copying={copying}
           />
         </div>
       </div>
