@@ -22,7 +22,7 @@ async function embedImagesAsDataUrls(root) {
   const imgs = Array.from(root.querySelectorAll('img[src^="http"]'))
   await Promise.all(imgs.map(async (img) => {
     try {
-      const resp = await fetchWithTimeout(img.src, 15000)
+      const resp = await fetchImageForEmbed(img.src)
       if (!resp.ok) return
       const blob = await resp.blob()
       if (!blob.type.startsWith('image/')) return
@@ -31,6 +31,20 @@ async function embedImagesAsDataUrls(root) {
       // CORS 未配置或网络失败：保留外链，由微信尝试转存
     }
   }))
+}
+
+/**
+ * 取回图片用于内嵌。预览 <img> 的加载不带 Origin，浏览器/CDN 可能缓存了
+ * 不含 CORS 头的副本，导致这里的跨域 fetch 命中脏缓存而失败；
+ * 失败后追加查询参数换一个缓存键重试，绕开浏览器与边缘节点的全部缓存。
+ */
+async function fetchImageForEmbed(src) {
+  try {
+    const resp = await fetchWithTimeout(src, 15000)
+    if (resp.ok) return resp
+  } catch { /* fall through to cache-busted retry */ }
+  const retryUrl = src + (src.includes('?') ? '&' : '?') + '_cors=1'
+  return fetchWithTimeout(retryUrl, 15000)
 }
 
 function fetchWithTimeout(url, ms) {
