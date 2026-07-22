@@ -9,8 +9,124 @@
 export async function copyRichText(container) {
   const clone = container.cloneNode(true)
   inlineComputedStyles(container, clone)
+  flattenListsForWechat(clone, container)
   await embedImagesAsDataUrls(clone)
   return writeToClipboard(clone.outerHTML, container)
+}
+
+/**
+ * 把列表符号「拍平」成真实内联文本，规避微信粘贴时的 marker 丢失/断行。
+ *
+ * 背景：微信编辑器会用自己的一套 list-marker 机制重排带原生列表符号的 <li>，
+ * 把「**引导词** 正文」拆成两行；而微信系主题用 `li::before` 画的圆点/序号是伪元素，
+ * 根本进不了剪贴板 HTML。解法（同 mdnice / doocs-md）：给每个 <li> 注入一个真实的
+ * <span> 符号，再把 <li> 改成块级并关掉一切 marker 机制，让内容纯内联流动。
+ *
+ * 只操作 clone；sourceContainer 用来读伪元素/文本的计算色与符号字形，让符号与主题协调。
+ */
+function flattenListsForWechat(clone, sourceContainer) {
+  const cloneLis = clone.querySelectorAll('li')
+  const sourceLis = sourceContainer.querySelectorAll('li')
+
+  cloneLis.forEach((li, i) => {
+    const parent = li.parentElement
+    if (!parent) return
+    const ordered = parent.tagName === 'OL'
+    const sourceLi = sourceLis[i]
+
+    let markerText
+    if (ordered) {
+      const start = parseInt(parent.getAttribute('start') || '1', 10) || 1
+      const idx = Array.prototype.filter
+        .call(parent.children, (c) => c.tagName === 'LI')
+        .indexOf(li)
+      markerText = `${start + idx}. `
+    }
+    const marker = resolveMarker(sourceLi, ordered, markerText)
+
+    const span = document.createElement('span')
+    span.setAttribute('style', `color:${marker.color};`)
+    span.textContent = marker.text
+
+    // 松散列表（li > p）符号要插进 p 内首位，否则行内 span 顶在块级 p 前会独占一行
+    const host = li.firstElementChild && li.firstElementChild.tagName === 'P'
+      ? li.firstElementChild
+      : li
+    host.insertBefore(span, host.firstChild)
+
+    // 关掉 marker 机制；悬挂缩进作用在真正承载文字的容器上（松散列表是内层 p），
+    // 这样首行符号悬挂、折行与正文对齐；li 自身清零 padding 避免与 host 叠加
+    appendStyle(li, 'display:block;list-style:none;padding-left:0;')
+    appendStyle(host, 'padding-left:1.4em;text-indent:-1.4em;')
+  })
+
+  clone.querySelectorAll('ul, ol').forEach((list) => {
+    appendStyle(list, 'list-style:none;padding-left:0;')
+  })
+}
+
+/** 决定某个列表项的符号字形与颜色（尽量忠实于源主题的 ::before 呈现） */
+function resolveMarker(sourceLi, ordered, orderedText) {
+  if (ordered) {
+    // 序号自行生成，但颜色尽量沿用主题给 ::before 计数器设定的色（如微信系主题的主色）
+    let color = pickTextColor(sourceLi)
+    if (sourceLi) {
+      try {
+        const c = window.getComputedStyle(sourceLi, '::before').getPropertyValue('color')
+        if (isVisibleColor(c)) color = c
+      } catch { /* 读取失败：用正文色 */ }
+    }
+    return { text: orderedText, color }
+  }
+  if (sourceLi) {
+    try {
+      const before = window.getComputedStyle(sourceLi, '::before')
+      const glyph = parsePseudoGlyph(before.getPropertyValue('content'))
+      if (glyph) {
+        const c = before.getPropertyValue('color')
+        return { text: glyph, color: isVisibleColor(c) ? c : pickTextColor(sourceLi) }
+      }
+      // 用背景色画的圆点（如微信系主题）：符号用 •，颜色取该背景色
+      const bg = before.getPropertyValue('background-color')
+      if (isVisibleColor(bg)) return { text: '• ', color: bg }
+    } catch { /* 伪元素读取失败：回退到默认圆点 */ }
+  }
+  return { text: '• ', color: pickTextColor(sourceLi) }
+}
+
+/** 把 ::before 的 content 计算值解析成可用的符号字形；counter()/空/none 返回 null */
+function parsePseudoGlyph(content) {
+  if (!content || content === 'none' || content === 'normal') return null
+  if (content.includes('counter(') || content.includes('attr(')) return null
+  const m = content.match(/^["'](.*)["']$/s)
+  if (!m) return null
+  const text = m[1]
+  if (!text.trim()) return null
+  return /\s$/.test(text) ? text : text + ' '
+}
+
+function pickTextColor(sourceLi) {
+  if (sourceLi) {
+    const c = window.getComputedStyle(sourceLi).color
+    if (isVisibleColor(c)) return c
+  }
+  return 'inherit'
+}
+
+function isVisibleColor(color) {
+  if (!color || color === 'transparent') return false
+  const m = color.match(/rgba?\(([^)]+)\)/)
+  if (m) {
+    const parts = m[1].split(',').map((s) => parseFloat(s.trim()))
+    if (parts.length >= 4 && parts[3] === 0) return false
+  }
+  return true
+}
+
+function appendStyle(el, css) {
+  const existing = el.getAttribute('style') || ''
+  const sep = existing && !existing.trim().endsWith(';') ? ';' : ''
+  el.setAttribute('style', existing + sep + css)
 }
 
 /**
