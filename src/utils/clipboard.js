@@ -37,7 +37,12 @@ function flattenListsForWechat(clone, sourceContainer) {
     .forEach((list) => convertList(list, 0, sourceByClone))
 }
 
-/** 递归把一个 <ul>/<ol> 及其 <li> 改写成一组 <section> 段落块 */
+const BLOCK_TAGS = new Set([
+  'UL', 'OL', 'P', 'DIV', 'SECTION', 'PRE', 'BLOCKQUOTE', 'TABLE', 'FIGURE',
+  'H1', 'H2', 'H3', 'H4', 'H5', 'H6',
+])
+
+/** 递归把一个 <ul>/<ol> 及其 <li> 改写成一组与正文同构的段落块 */
 function convertList(list, depth, sourceByClone) {
   const ordered = list.tagName === 'OL'
   const start = ordered ? (parseInt(list.getAttribute('start') || '1', 10) || 1) : 1
@@ -46,21 +51,35 @@ function convertList(list, depth, sourceByClone) {
   const out = items.map((li, idx) => {
     const marker = resolveMarker(sourceByClone.get(li), ordered, ordered ? `${start + idx}. ` : null)
 
-    const item = document.createElement('section')
-    // 保留 li 上已内联的文字相关样式（颜色/行高/字号），再叠加块级与外边距
-    item.setAttribute('style', li.getAttribute('style') || '')
-    appendStyle(item, 'display:block;list-style:none;margin:0.3em 0;padding-left:0;')
-
-    // 迁移 li 的全部子节点到 item
-    while (li.firstChild) item.appendChild(li.firstChild)
-
-    // 递归改写 item 内的嵌套列表（此时它们是 item 的直接子级）
+    // 先把 li 内的嵌套列表就地转换掉（转换后是若干块级元素）
     Array.prototype.filter
-      .call(item.children, (c) => c.tagName === 'UL' || c.tagName === 'OL')
+      .call(li.children, (c) => c.tagName === 'UL' || c.tagName === 'OL')
       .forEach((sub) => convertList(sub, depth + 1, sourceByClone))
 
-    // 符号注入到真正承载首行文字的容器：松散列表是内层 <p>，否则是 item 本身
-    const host = item.firstElementChild && item.firstElementChild.tagName === 'P'
+    const childEls = Array.prototype.slice.call(li.children)
+    const hasBlock = childEls.some((c) => BLOCK_TAGS.has(c.tagName))
+
+    let item
+    if (!hasBlock) {
+      // 纯行内内容：用 <p>，与正文段落同构。微信只在 <section> 与 <p> 的过渡处额外加段间距，
+      // 用 <p> 后列表和段落一视同仁，列表前后不再多出空白（列表项之间的间距仍由下面的 margin 控制）。
+      item = document.createElement('p')
+      item.setAttribute('style', li.getAttribute('style') || '')
+      while (li.firstChild) item.appendChild(li.firstChild)
+    } else if (childEls.length === 1 && childEls[0].tagName === 'P') {
+      // 松散列表 li>单个<p>：直接复用这个 <p> 当列表项，避免 <p> 套 <p>
+      item = childEls[0]
+    } else {
+      // 含嵌套列表/多个块级子节点：只能用 <section> 容纳块级内容
+      item = document.createElement('section')
+      item.setAttribute('style', li.getAttribute('style') || '')
+      while (li.firstChild) item.appendChild(li.firstChild)
+    }
+
+    appendStyle(item, 'display:block;list-style:none;margin:0.3em 0;padding-left:0;')
+
+    // 符号注入到真正承载首行文字的容器：<section> 项里若首个块是 <p> 则进 <p>，否则进 item 本身
+    const host = item.tagName !== 'P' && item.firstElementChild && item.firstElementChild.tagName === 'P'
       ? item.firstElementChild
       : item
     const span = document.createElement('span')
@@ -74,8 +93,7 @@ function convertList(list, depth, sourceByClone) {
     return item
   })
 
-  // 直接用各项 <section> 替换整个列表，不再套外层 wrapper——
-  // 外层块会被微信当作独立段落在列表前后加段间距，正是「前后多出空白」的来源。
+  // 直接用各项替换整个列表，不套外层 wrapper
   list.replaceWith(...out)
 }
 
