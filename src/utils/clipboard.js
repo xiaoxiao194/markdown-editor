@@ -15,54 +15,70 @@ export async function copyRichText(container) {
 }
 
 /**
- * 把列表符号「拍平」成真实内联文本，规避微信粘贴时的 marker 丢失/断行。
+ * 把列表整体改写成 <section> 段落块，规避微信粘贴时列表项断行。
  *
- * 背景：微信编辑器会用自己的一套 list-marker 机制重排带原生列表符号的 <li>，
- * 把「**引导词** 正文」拆成两行；而微信系主题用 `li::before` 画的圆点/序号是伪元素，
- * 根本进不了剪贴板 HTML。解法（同 mdnice / doocs-md）：给每个 <li> 注入一个真实的
- * <span> 符号，再把 <li> 改成块级并关掉一切 marker 机制，让内容纯内联流动。
+ * 根因：微信编辑器的粘贴净化按标签结构处理 <ul>/<ol>/<li>，不看内联 CSS——
+ * 会用它自己那套列表排版逻辑把「以行内元素（如加粗引导词）开头」的 <li> 在加粗后断成两行；
+ * 而同文档里以加粗开头的 <p> 段落却不受影响。所以只改 <li> 的样式没用（实测无效），
+ * 必须让剪贴板里根本不出现 <ul>/<ol>/<li>：每个列表项转成 <section>（微信原生块结构），
+ * 符号作为行内文本注入；列表容器转成 <section> 包裹，天然保留嵌套与段间距。
  *
- * 只操作 clone；sourceContainer 用来读伪元素/文本的计算色与符号字形，让符号与主题协调。
+ * 只操作 clone；sourceContainer 用来读主题给 ::before 的计算色/字形，让符号与主题协调。
  */
 function flattenListsForWechat(clone, sourceContainer) {
-  const cloneLis = clone.querySelectorAll('li')
+  // 源与克隆的 li 按文档顺序一一对应（含嵌套），用于还原主题符号色/字形
   const sourceLis = sourceContainer.querySelectorAll('li')
+  const sourceByClone = new Map()
+  clone.querySelectorAll('li').forEach((li, i) => sourceByClone.set(li, sourceLis[i]))
 
-  cloneLis.forEach((li, i) => {
-    const parent = li.parentElement
-    if (!parent) return
-    const ordered = parent.tagName === 'OL'
-    const sourceLi = sourceLis[i]
+  // 只从最外层列表开始，内层列表由递归处理（避免重复处理）
+  Array.from(clone.querySelectorAll('ul, ol'))
+    .filter((el) => !el.closest('li'))
+    .forEach((list) => convertList(list, 0, sourceByClone))
+}
 
-    let markerText
-    if (ordered) {
-      const start = parseInt(parent.getAttribute('start') || '1', 10) || 1
-      const idx = Array.prototype.filter
-        .call(parent.children, (c) => c.tagName === 'LI')
-        .indexOf(li)
-      markerText = `${start + idx}. `
-    }
-    const marker = resolveMarker(sourceLi, ordered, markerText)
+/** 递归把一个 <ul>/<ol> 及其 <li> 改写成 <section> 段落块 */
+function convertList(list, depth, sourceByClone) {
+  const ordered = list.tagName === 'OL'
+  const start = ordered ? (parseInt(list.getAttribute('start') || '1', 10) || 1) : 1
 
+  const wrapper = document.createElement('section')
+  wrapper.setAttribute('style', list.getAttribute('style') || '')
+  appendStyle(wrapper, 'padding-left:0;list-style:none;')
+
+  const items = Array.prototype.filter.call(list.children, (c) => c.tagName === 'LI')
+  items.forEach((li, idx) => {
+    const marker = resolveMarker(sourceByClone.get(li), ordered, ordered ? `${start + idx}. ` : null)
+
+    const item = document.createElement('section')
+    // 保留 li 上已内联的文字相关样式（颜色/行高/字号），再叠加块级与外边距
+    item.setAttribute('style', li.getAttribute('style') || '')
+    appendStyle(item, 'display:block;list-style:none;margin:0.3em 0;padding-left:0;')
+
+    // 迁移 li 的全部子节点到 item
+    while (li.firstChild) item.appendChild(li.firstChild)
+
+    // 递归改写 item 内的嵌套列表（此时它们是 item 的直接子级）
+    Array.prototype.filter
+      .call(item.children, (c) => c.tagName === 'UL' || c.tagName === 'OL')
+      .forEach((sub) => convertList(sub, depth + 1, sourceByClone))
+
+    // 符号注入到真正承载首行文字的容器：松散列表是内层 <p>，否则是 item 本身
+    const host = item.firstElementChild && item.firstElementChild.tagName === 'P'
+      ? item.firstElementChild
+      : item
     const span = document.createElement('span')
     span.setAttribute('style', `color:${marker.color};`)
     span.textContent = marker.text
-
-    // 松散列表（li > p）符号要插进 p 内首位，否则行内 span 顶在块级 p 前会独占一行
-    const host = li.firstElementChild && li.firstElementChild.tagName === 'P'
-      ? li.firstElementChild
-      : li
     host.insertBefore(span, host.firstChild)
 
-    // 关掉 marker 机制；悬挂缩进作用在真正承载文字的容器上（松散列表是内层 p），
-    // 这样首行符号悬挂、折行与正文对齐；li 自身清零 padding 避免与 host 叠加
-    appendStyle(li, 'display:block;list-style:none;padding-left:0;')
-    appendStyle(host, 'padding-left:1.4em;text-indent:-1.4em;')
+    // 悬挂缩进作用在 host（含符号的那一行），随层级增加左缩进
+    appendStyle(host, `padding-left:${(1.4 + depth * 1.2).toFixed(2)}em;text-indent:-1.4em;`)
+
+    wrapper.appendChild(item)
   })
 
-  clone.querySelectorAll('ul, ol').forEach((list) => {
-    appendStyle(list, 'list-style:none;padding-left:0;')
-  })
+  list.replaceWith(wrapper)
 }
 
 /** 决定某个列表项的符号字形与颜色（尽量忠实于源主题的 ::before 呈现） */
