@@ -37,17 +37,13 @@ function flattenListsForWechat(clone, sourceContainer) {
     .forEach((list) => convertList(list, 0, sourceByClone))
 }
 
-/** 递归把一个 <ul>/<ol> 及其 <li> 改写成 <section> 段落块 */
+/** 递归把一个 <ul>/<ol> 及其 <li> 改写成一组 <section> 段落块 */
 function convertList(list, depth, sourceByClone) {
   const ordered = list.tagName === 'OL'
   const start = ordered ? (parseInt(list.getAttribute('start') || '1', 10) || 1) : 1
 
-  const wrapper = document.createElement('section')
-  wrapper.setAttribute('style', list.getAttribute('style') || '')
-  appendStyle(wrapper, 'padding-left:0;list-style:none;')
-
   const items = Array.prototype.filter.call(list.children, (c) => c.tagName === 'LI')
-  items.forEach((li, idx) => {
+  const out = items.map((li, idx) => {
     const marker = resolveMarker(sourceByClone.get(li), ordered, ordered ? `${start + idx}. ` : null)
 
     const item = document.createElement('section')
@@ -75,10 +71,12 @@ function convertList(list, depth, sourceByClone) {
     // 悬挂缩进作用在 host（含符号的那一行），随层级增加左缩进
     appendStyle(host, `padding-left:${(1.4 + depth * 1.2).toFixed(2)}em;text-indent:-1.4em;`)
 
-    wrapper.appendChild(item)
+    return item
   })
 
-  list.replaceWith(wrapper)
+  // 直接用各项 <section> 替换整个列表，不再套外层 wrapper——
+  // 外层块会被微信当作独立段落在列表前后加段间距，正是「前后多出空白」的来源。
+  list.replaceWith(...out)
 }
 
 /** 决定某个列表项的符号字形与颜色（尽量忠实于源主题的 ::before 呈现） */
